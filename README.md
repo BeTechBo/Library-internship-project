@@ -13,7 +13,7 @@ This repository contains the implementation of an image face tagging tool. The t
 ## Task List
 
 - [X] Experimentation with different tools
-- [ ] Connect to database
+- [x] Connect to database
 - [ ] Create Design for pages
 - [ ] Create Pages (Larger break down later)
 - [ ] Implement Cascading
