@@ -12,11 +12,11 @@ This repository contains the implementation of an image face tagging tool. The t
 
 ## Task List
 
-- [X] Experimentation with different tools
+- [x] Experimentation with different tools
 - [x] Connect to database
 - [x] Create Design for pages
 - [ ] Starting Page
-- [ ] "Unlabeled" page
+- [ ] "Unlabeled" page [ omar ]
 - [ ] File upload selection
 - [ ] Implement Cascading
 - [ ] Comfirmation page for uncertain cascading
