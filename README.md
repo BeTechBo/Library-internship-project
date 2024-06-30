@@ -15,7 +15,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Experimentation with different tools
 - [x] Connect to database
 - [x] Create Design for pages
-- [ ] Starting Page
+- [ ] Starting Page [ Andrew ]
 - [ ] "Unlabeled" page [ omar ]
 - [ ] File upload selection [ Ebram ]
 - [ ] Implement Cascading
