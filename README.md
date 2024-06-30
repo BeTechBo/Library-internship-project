@@ -14,7 +14,14 @@ This repository contains the implementation of an image face tagging tool. The t
 
 - [X] Experimentation with different tools
 - [x] Connect to database
-- [ ] Create Design for pages
-- [ ] Create Pages (Larger break down later)
+- [x] Create Design for pages
+- [ ] Starting Page
+- [ ] "Unlabeled" page
+- [ ] File upload selection
 - [ ] Implement Cascading
+- [ ] Comfirmation page for uncertain cascading
+- [ ] Labeling picures (UI only)
+- [ ] Labeling pictures optimize label location (should it be below a person next to? needs optimization)
+- [ ] "Already labeled" page
+- [ ] update existing label page (Maybe) 
 - [ ] Installation Steps
