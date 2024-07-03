@@ -20,6 +20,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [ ] Swap page to file upload [ omar ]
 - [ ] File upload selection [ Ebram ]
 - [ ] Swap page to labeling [ omar ]
+- [ ] Moving between pages [ Ebram ]
 - [ ] Implement Cascading   
 - [ ] Comfirmation page for uncertain cascading [ Ebram ]
 - [ ] Labeling picures (UI only) [ Andrew ]
