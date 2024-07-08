@@ -28,7 +28,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [ ] Implement the search method for the labelled page 
 - [ ] Implement Cascading   
 - [ ] Comfirmation page for uncertain cascading [ Ebram ]
-- [ ] Labeling picures (UI only) [ Andrew ]
+- [x] Labeling picures (UI only)
 - [ ] Labeling pictures optimize label location (should it be below a person next to? needs optimization)
 - [ ] Update existing label page (Maybe) 
 - [ ] Create Executable
