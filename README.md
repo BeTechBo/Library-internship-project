@@ -22,7 +22,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] File upload selection
 - [x] Swap page to labeling
 - [x] Moving between pages
-- [ ] Unify the qt versions [ omar ]
+- [x] Unify the qt versions
 - [ ] Reorganize files [ omar ]
 - [ ] Fix bugs (problems in unlabeled page like : "QPropertyAnimation: you're trying to animate a non-existing property border of your QObject")
 - [ ] Implement the search method for the labelled page 
