@@ -36,16 +36,16 @@ class MainWindow(QMainWindow):
                 color: white;
             }
             QPushButton#Button1 {
-                background-color: #D7CEB2;
+                background-color: #BB86FC;
             }
             QPushButton#Button1:hover {
-                background-color: #d35400;
+                background-color: #D9A4FF;
             }
             QPushButton#Button2 {
-                background-color: #1abc9c;
+                background-color: #03dac5;
             }
             QPushButton#Button2:hover {
-                background-color: #16a085;
+                background-color: #35fff7;
             }
             QLabel {
                 font-size: 20px;
