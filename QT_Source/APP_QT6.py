@@ -7,6 +7,54 @@ from PyQt6.QtGui import QPixmap, QFont, QIcon
 import pymongo
 from gridfs import GridFS
 
+from pymongo import MongoClient
+from PyQt6.QtCore import Qt, QSize
+from PyQt6.QtGui import QPixmap, QIcon
+
+
+class AllImagesWindow(QMainWindow):
+    def __init__(self, db):
+        super().__init__()
+
+        self.setWindowTitle('All Images')
+        self.setGeometry(100, 100, 800, 600)
+
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+        self.layout = QVBoxLayout()
+        self.central_widget.setLayout(self.layout)
+
+        self.listWidget = QListWidget()
+        self.listWidget.setIconSize(QSize(100, 100))
+        self.listWidget.setStyleSheet("QListWidget { margin: 10px; }")
+
+        self.db = db
+        self.fs = GridFS(self.db)
+
+        self.load_images()
+
+        self.layout.addWidget(self.listWidget)
+
+        back_button = QPushButton("Back")
+        back_button.clicked.connect(self.go_back)
+        back_button.setStyleSheet("QPushButton { margin: 10px; }")
+        self.layout.addWidget(back_button)
+
+    def load_images(self):
+        # Fetch all images from GridFS and display them in the list widget
+        files = self.fs.find()
+        for file in files:
+            item = QListWidgetItem()
+            pixmap = QPixmap()
+            pixmap.loadFromData(file.read())
+            pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            item.setIcon(QIcon(pixmap))
+            item.setText(file.filename)
+            self.listWidget.addItem(item)
+
+    def go_back(self):
+        self.close()
+
 class SlideshowWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -64,8 +112,10 @@ class SlideshowWidget(QWidget):
         self.next_button.setEnabled(self.current_index < len(self.image_paths) - 1)
 
 class ScrollListExample(QWidget):
-    def __init__(self):
+    def __init__(self, main_window):
         super().__init__()
+
+        self.main_window = main_window  # Reference to the main window
 
         self.setWindowTitle('Scrollable List Example')
         self.setGeometry(100, 100, 400, 600)
@@ -129,7 +179,7 @@ class ScrollListExample(QWidget):
         layout.addWidget(self.listWidget)
 
         back_button = QPushButton("Back")
-        back_button.clicked.connect(self.close)  # Closes the window when "Back" is clicked
+        back_button.clicked.connect(self.go_back)  # Go back to the main window
         back_button.setStyleSheet("QPushButton { margin: 10px; }")
         layout.addWidget(back_button)
 
@@ -138,6 +188,10 @@ class ScrollListExample(QWidget):
     def on_search_button_clicked(self):
         # Placeholder for search button functionality
         print("Search button clicked")
+
+    def go_back(self):
+        self.hide()
+        self.main_window.show()
 
 class UploadPage(QMainWindow):
     def __init__(self):
@@ -157,6 +211,10 @@ class UploadPage(QMainWindow):
 
         self.upload_dir = os.path.join(os.getcwd(), 'uploaded_images')
         os.makedirs(self.upload_dir, exist_ok=True)
+
+        self.client = MongoClient('mongodb://localhost:27017/')
+        self.db = self.client['all_images']
+        self.fs = GridFS(self.db)
 
         self.option_upload_single()
         self.option_upload_multiple()
@@ -187,9 +245,6 @@ class UploadPage(QMainWindow):
         self.upload_button_multiple.clicked.connect(self.upload_images)
         layout.addWidget(self.upload_button_multiple)
 
-        self.slideshow = SlideshowWidget()
-        layout.addWidget(self.slideshow)
-
         self.tab_2.setLayout(layout)
 
     def upload_image(self):
@@ -200,7 +255,8 @@ class UploadPage(QMainWindow):
                 pixmap = QPixmap(file_name)
                 self.image_label_single.setPixmap(pixmap.scaled(self.image_label_single.size(), Qt.AspectRatioMode.KeepAspectRatio))
                 self.image_label_single.setText("")
-                self.save_image(file_name)
+                image_id = self.save_image(file_name)
+                # Optionally store image_id in your database or use it as needed
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
@@ -209,24 +265,24 @@ class UploadPage(QMainWindow):
             file_names, _ = QFileDialog.getOpenFileNames(self, "Select Images", "", 
                                                          "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)")
             if file_names:
-                image_paths = [self.save_image(file_name) for file_name in file_names]
-                if image_paths:
-                    self.slideshow.set_image_paths(image_paths)
+                image_ids = [self.save_image(file_name) for file_name in file_names]
+                if image_ids:
+                    QMessageBox.information(self, "Images Uploaded", f"Uploaded {len(image_ids)} images.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
     def save_image(self, file_name):
         try:
-            base_name = os.path.basename(file_name)
-            dest_path = os.path.join(self.upload_dir, base_name)
-            shutil.copy(file_name, dest_path)
-            print(f"Image saved to {dest_path}")
-            return dest_path
+            with open(file_name, 'rb') as image_file:
+                image_id = self.fs.put(image_file, filename=os.path.basename(file_name))
+            print(f"Image saved to MongoDB GridFS with id: {image_id}")
+            return image_id  # Return the image_id for reference
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save image: {e}")
 
     def return_home(self):
         self.hide()
+        # Assuming StartingPage is another class where you define your starting page
         self.start = StartingPage()
         self.start.show()
 
@@ -255,9 +311,17 @@ class UnlabelledOptionsPage(QMainWindow):
         self.upload_page = UploadPage()
         self.upload_page.show()
 
+    #def label_images(self):
+    #   QMessageBox.information(self, "Label Images", "Label images functionality to be implemented.")
     def label_images(self):
-        QMessageBox.information(self, "Label Images", "Label images functionality to be implemented.")
-
+        # Open a window to display all images from the 'all_images' database
+        try:
+            client = MongoClient('mongodb://localhost:27017/')
+            db = client['all_images']
+            self.all_images_window = AllImagesWindow(db)
+            self.all_images_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 class StartingPage(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -293,7 +357,7 @@ class StartingPage(QMainWindow):
 
     def show_labelled_photos(self):
         self.hide()
-        self.labelled_photos_window = ScrollListExample()
+        self.labelled_photos_window = ScrollListExample(self)  # Pass the reference to the main window
         self.labelled_photos_window.show()
 
     def open_unlabelled_options(self):
