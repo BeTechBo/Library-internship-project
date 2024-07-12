@@ -3,7 +3,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
 from widgets.scroll_list_example_widget import ScrollListExample
-from .unlabeled_options_page import UnlabelledOptionsPage
+from .unlabeled_options_page import *
 
 class StartingPage(QMainWindow):
     def __init__(self):
