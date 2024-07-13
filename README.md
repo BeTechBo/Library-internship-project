@@ -23,14 +23,17 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Swap page to labeling
 - [x] Moving between pages
 - [x] Unify the qt versions
-- [ ] Reorganize files [ omar ]
-- [ ] Fix bugs (problems in unlabeled page like : "QPropertyAnimation: you're trying to animate a non-existing property border of your QObject")
-- [ ] Implement the search method for the labelled page 
+- [x] Labeling picures (UI only)
+- [x] Reorganize files
+- [ ] unlabeled page error : "QPropertyAnimation: you're trying to animate a non-existing property border of your QObject"
+- [ ] Labelling pictures (backend: save the name and the face in the database) [ Andrew, Ebram ]
+- [ ] Connect everything to the database
 - [ ] Implement Cascading   
 - [ ] Comfirmation page for uncertain cascading [ Ebram ]
-- [x] Labeling picures (UI only)
-- [ ] Labelling pictures (backend: save the name and the face in the database) [Andrew]
-- [ ] Labeling pictures optimize label location (should it be below a person next to? needs optimization)
-- [ ] Update existing label page (Maybe) 
-- [ ] Create Executable
+- [ ] Fix styling [ Omar ]
+- [ ] Implement the search method for the labelled page 
+- [ ] Delete image option
+- [ ] Remove duplicates [ Ashkar ]
+- [ ] Create Executable [ Omar ]
+- [ ] Testing
 - [ ] Installation Steps
