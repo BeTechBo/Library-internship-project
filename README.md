@@ -27,8 +27,10 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Reorganize files
 - [ ] Fix circular imports problem [ Ashkar, Omar]
 - [ ] Labelling pictures (backend: save the name and the face in the database) [ Andrew, Ebram ]
+      
         - Run the algorithm on the unlabeled images [Ebram]
         - Saving the name and encondings [Andrew]
+      
 - [ ] Connect everything to the database, verify it all makes sense [ Ashkar, Omar]
 - [ ] Implement Cascading
 - [ ] Comfirmation page for uncertain cascading
