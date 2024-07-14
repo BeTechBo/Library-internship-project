@@ -1,10 +1,8 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QListWidget, QListWidgetItem
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap,QIcon
-from gridfs import GridFS
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QListWidget, QListWidgetItem, QMessageBox
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
-
+from gridfs import GridFS
+from .Label_Pictures import ImageLabel, LabellingPic  # Assuming these are your custom classes
 
 class AllImagesWindow(QMainWindow):
     def __init__(self, db):
@@ -34,6 +32,13 @@ class AllImagesWindow(QMainWindow):
         back_button.setStyleSheet("QPushButton { margin: 10px; }")
         self.layout.addWidget(back_button)
 
+        show_button = QPushButton("Show")
+        show_button.clicked.connect(self.show_item)
+        self.layout.addWidget(show_button)
+
+        # Connect double-click signal to the slot
+        self.listWidget.itemDoubleClicked.connect(self.item_double_clicked)
+
     def load_images(self):
         # Fetch all images from GridFS and display them in the list widget
         files = self.fs.find()
@@ -45,6 +50,23 @@ class AllImagesWindow(QMainWindow):
             item.setIcon(QIcon(pixmap))
             item.setText(file.filename)
             self.listWidget.addItem(item)
+
+    def show_item(self):
+        current_item = self.listWidget.currentItem()
+        if current_item:
+            item_text = current_item.text()
+            print(f"Selected item text: {item_text}")
+            # Optionally, show a message box with the selected item's text
+            QMessageBox.information(self, "Selected Item", f"Selected item: {item_text}")
+
+    def item_double_clicked(self, item):
+        current_item = self.listWidget.currentItem()
+        if current_item:
+            item_text = current_item.text()
+            print(f"Double-clicked on: {item_text}")
+            # Assuming LabellingPic is a custom class to handle displaying the image
+            self.label_image = LabellingPic(item_text)
+            self.label_image.show()
 
     def go_back(self):
         self.close()
