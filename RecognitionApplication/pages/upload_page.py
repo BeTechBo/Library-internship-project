@@ -3,8 +3,7 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QFormLayout, QLab
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from gridfs import GridFS
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPixmap
+from pymongo import MongoClient
 from .home import StartingPage
 from services.database import Database
 
@@ -67,11 +66,14 @@ class UploadPage(QMainWindow):
             file_name, _ = QFileDialog.getOpenFileName(self, "Select an Image", "", 
                                                        "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)")
             if file_name:
-                pixmap = QPixmap(file_name)
-                self.image_label_single.setPixmap(pixmap.scaled(self.image_label_single.size(), Qt.AspectRatioMode.KeepAspectRatio))
-                self.image_label_single.setText("")
-                image_id = self.save_image(file_name)
-                # Optionally store image_id in your database or use it as needed
+                if self.image_exists(file_name):
+                    QMessageBox.warning(self, "Duplicate Image", "This image already exists in the database.")
+                else:
+                    pixmap = QPixmap(file_name)
+                    self.image_label_single.setPixmap(pixmap.scaled(self.image_label_single.size(), Qt.AspectRatioMode.KeepAspectRatio))
+                    self.image_label_single.setText("")
+                    image_id = self.save_image(file_name)
+                    # Optionally store image_id in your database or use it as needed
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
@@ -80,9 +82,12 @@ class UploadPage(QMainWindow):
             file_names, _ = QFileDialog.getOpenFileNames(self, "Select Images", "", 
                                                          "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)")
             if file_names:
-                image_ids = [self.save_image(file_name) for file_name in file_names]
+                new_files = [file_name for file_name in file_names if not self.image_exists(file_name)]
+                image_ids = [self.save_image(file_name) for file_name in new_files]
                 if image_ids:
                     QMessageBox.information(self, "Images Uploaded", f"Uploaded {len(image_ids)} images.")
+                if len(new_files) < len(file_names):
+                    QMessageBox.warning(self, "Duplicate Images", f"{len(file_names) - len(new_files)} images were duplicates and were not uploaded.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
@@ -94,6 +99,14 @@ class UploadPage(QMainWindow):
             return image_id  # Return the image_id for reference
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save image: {e}")
+
+    def image_exists(self, file_name):
+        try:
+            filename = os.path.basename(file_name)
+            return self.fs.exists({'filename': filename})
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to check if image exists: {e}")
+            return False
 
     def return_home(self):
         self.hide()
