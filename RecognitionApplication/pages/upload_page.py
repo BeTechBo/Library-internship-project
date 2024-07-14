@@ -3,8 +3,6 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QFormLayout, QLab
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 from gridfs import GridFS
-from pymongo import MongoClient
-from .home import StartingPage
 from services.database import Database
 
 class UploadPage(QMainWindow):
@@ -110,6 +108,6 @@ class UploadPage(QMainWindow):
 
     def return_home(self):
         self.hide()
-        # Assuming StartingPage is another class where you define your starting page
+        from .starting_page import StartingPage
         self.start = StartingPage()
         self.start.show()

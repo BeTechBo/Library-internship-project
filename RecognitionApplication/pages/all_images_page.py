@@ -2,8 +2,6 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QLis
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
 from gridfs import GridFS
-from .Label_Pictures import ImageLabel, LabellingPic  # Assuming these are your custom classes
-
 class AllImagesWindow(QMainWindow):
     def __init__(self, db):
         super().__init__()
@@ -64,7 +62,7 @@ class AllImagesWindow(QMainWindow):
         if current_item:
             item_text = current_item.text()
             print(f"Double-clicked on: {item_text}")
-            # Assuming LabellingPic is a custom class to handle displaying the image
+            from .labeling_picture_page import LabellingPic
             self.label_image = LabellingPic(item_text)
             self.label_image.show()
 

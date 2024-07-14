@@ -1,6 +1,5 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout,QPushButton,QMessageBox
 from .upload_page import UploadPage
-from .all_images_page import AllImagesWindow
 from services.database import Database
 
 class UnlabelledOptionsPage(QMainWindow):
@@ -31,6 +30,7 @@ class UnlabelledOptionsPage(QMainWindow):
     #def label_images(self):
     #   QMessageBox.information(self, "Label Images", "Label images functionality to be implemented.")
     def label_images(self):
+        from .all_images_page import AllImagesWindow
         # Open a window to display all images from the 'all_images' database
         try:
             database = Database()
