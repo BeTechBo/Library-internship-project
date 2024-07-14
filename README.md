@@ -25,7 +25,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Unify the qt versions
 - [x] Labeling picures (UI only)
 - [x] Reorganize files
-- [ ] Fix circular imports problem [ Ashkar, Omar]
+- [x] Fix circular imports problem
 - [ ] Labelling pictures (backend: save the name and the face in the database) [ Andrew, Ebram ]
       
         - Run the algorithm on the unlabeled images [Ebram]
@@ -34,11 +34,11 @@ This repository contains the implementation of an image face tagging tool. The t
 - [ ] Connect everything to the database, verify it all makes sense [ Ashkar, Omar]
 - [ ] Implement Cascading
 - [ ] Comfirmation page for uncertain cascading
-- [ ] Fix styling [ Omar ]
+- [x] Fix styling
 - [ ] View Labeled Images backend
 - [ ] Implement the search method for the labelled page 
 - [ ] Delete image option
 - [ ] Remove duplicates [ Ashkar ]
-- [ ] Create Executable [ Omar ]
+- [x] Create Executable
 - [ ] Testing
 - [ ] Installation Steps
