@@ -69,7 +69,7 @@ class ImageLabel(QWidget):
         #find if the face is already exist in our database or not
         face_encoding = self.face_encodings[index]
         all_faces_encodings = self.get_all_face_encodings(faces)
-        compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.8)
+        compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.55)
         if any(compare_faces):
             matching_index = compare_faces.index(True)  # Get the index of the first match
             matched_name = faces.find()[matching_index]['name']
