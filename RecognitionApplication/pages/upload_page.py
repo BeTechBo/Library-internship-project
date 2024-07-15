@@ -1,4 +1,5 @@
 import os
+import hashlib
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QFormLayout, QLabel, QPushButton, QFileDialog, QMessageBox, QTabWidget
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
@@ -29,6 +30,9 @@ class UploadPage(QMainWindow):
 
         self.db = self.client['all_images']
         self.fs = GridFS(self.db)
+
+        # Update existing images in the database with image_hash field
+        self.update_existing_images()
 
         self.option_upload_single()
         self.option_upload_multiple()
@@ -94,7 +98,9 @@ class UploadPage(QMainWindow):
     def save_image(self, file_name):
         try:
             with open(file_name, 'rb') as image_file:
-                image_id = self.fs.put(image_file, filename=os.path.basename(file_name))
+                image_data = image_file.read()
+                image_hash = hashlib.sha256(image_data).hexdigest()  # Compute the hash of the image data
+                image_id = self.fs.put(image_data, filename=os.path.basename(file_name), metadata={'image_hash': image_hash})
             print(f"Image saved to MongoDB GridFS with id: {image_id}")
             return image_id  # Return the image_id for reference
         except Exception as e:
@@ -102,8 +108,10 @@ class UploadPage(QMainWindow):
 
     def image_exists(self, file_name):
         try:
-            filename = os.path.basename(file_name)
-            return self.fs.exists({'filename': filename})
+            with open(file_name, 'rb') as image_file:
+                image_data = image_file.read()
+                image_hash = hashlib.sha256(image_data).hexdigest()  # Compute the hash of the image data
+                return self.fs.exists({'metadata.image_hash': image_hash})  # Check if an image with this hash already exists
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to check if image exists: {e}")
             return False
@@ -113,3 +121,15 @@ class UploadPage(QMainWindow):
         # Assuming StartingPage is another class where you define your starting page
         self.start = StartingPage()
         self.start.show()
+
+    def update_existing_images(self):
+        try:
+            for grid_out in self.fs.find():
+                if grid_out.metadata is None or 'image_hash' not in grid_out.metadata:
+                    image_data = grid_out.read()
+                    image_hash = hashlib.sha256(image_data).hexdigest()
+                    self.fs.delete(grid_out._id)  # Delete the old file
+                    self.fs.put(image_data, filename=grid_out.filename, metadata={'image_hash': image_hash})  # Add the file with new metadata
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to update existing images: {e}")
+
