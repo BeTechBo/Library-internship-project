@@ -38,7 +38,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [ ] View Labeled Images backend
 - [ ] Implement the search method for the labelled page 
 - [ ] Delete image option
-- [ ] Remove duplicates [ Ashkar ]
+- [x] Remove duplicates [ Ashkar ]
 - [x] Create Executable
 - [ ] Testing
 - [ ] Installation Steps
