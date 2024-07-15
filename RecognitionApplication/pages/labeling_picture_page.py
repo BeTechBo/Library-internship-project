@@ -30,14 +30,16 @@ class LabellingPic(QMainWindow):
         main_layout.addWidget(self.label)
 
         # Load image and detect faces
-        image_path = "D:\Internships_work\Library internship\pyqt\\temp\\"
+        #image_path = "D:\Internships_work\Library internship\pyqt\\temp\\"
+        image_path = "C:\\Users\\user\\Downloads\\Library_Internship\\GitHub\\LibraryFacialRecognition\\RecognitionApplication\\uploaded_images\\"
         full_path = image_path + self.PN
         print(full_path)
         image = face_recognition.load_image_file(full_path)
         face_locations = face_recognition.face_locations(image)
+        face_encodings = face_recognition.face_encodings(image) #for database
 
         # Create custom widget for displaying image with rectangles
-        self.image_label = ImageLabel(full_path, face_locations)
+        self.image_label = ImageLabel(full_path, face_locations, face_encodings)
         
         # Center the image_label widget using a horizontal layout
         hbox_layout = QHBoxLayout()
