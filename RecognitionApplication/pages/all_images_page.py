@@ -2,6 +2,11 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QLis
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
 from gridfs import GridFS
+from PIL import Image
+import io
+import face_recognition
+import numpy as np
+
 class AllImagesWindow(QMainWindow):
     def __init__(self, db):
         super().__init__()
@@ -62,9 +67,22 @@ class AllImagesWindow(QMainWindow):
         if current_item:
             item_text = current_item.text()
             print(f"Double-clicked on: {item_text}")
+    
+            # Retrieve the image data from GridFS
+            image_file = self.fs.find_one({"filename": item_text})
+            image_data = image_file.read()
+    
+            # Convert the binary data to an image using PIL
+            image = Image.open(io.BytesIO(image_data))
+            
+            # Convert the image to a NumPy array and ensure it's in RGB format
+            image_array = np.array(image.convert('RGB'))
+    
+            # Pass the image array to the LabellingPic class
             from .labeling_picture_page import LabellingPic
-            self.label_image = LabellingPic(item_text)
+            self.label_image = LabellingPic(image_array)
             self.label_image.show()
+
 
     def go_back(self):
         self.close()

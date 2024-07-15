@@ -1,23 +1,32 @@
-from PyQt6.QtWidgets import QApplication, QMainWindow, QLabel, QVBoxLayout, QHBoxLayout, QWidget, QInputDialog, QMessageBox
+from PyQt6.QtWidgets import QLabel, QWidget, QInputDialog, QMessageBox
 from PyQt6.QtCore import Qt, QRect
-from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor, QPen
+from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor, QPen, QImage
 from services.database import Database
 import face_recognition
 import numpy as np
-import sys
 
 class ImageLabel(QWidget):
-    def __init__(self, image_path, face_locations, face_encodings):
+    def __init__(self, image_array, face_locations, face_encodings):
         super().__init__()
         self.labelPic = QLabel(self)
-        self.image = QPixmap(image_path)
+        
+        # Convert numpy array to QImage
+        height, width, channel = image_array.shape
+        bytes_per_line = 3 * width
+        qimage = QImage(image_array.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
+        
+        # Convert QImage to QPixmap
+        self.image = QPixmap(qimage)
+        
         self.face_locations = face_locations
-        self.face_encodings = face_encodings #for the database
+        self.face_encodings = face_encodings  # for the database
         self.initUI()
 
     def initUI(self):
         self.setFixedSize(self.image.size())
         self.labelPic.setFixedSize(self.image.size())
+        self.labelPic.setPixmap(self.image)
+        self.labelPic.resize(self.image.width(), self.image.height())
 
     def paintEvent(self, event):
         image_for_drawing = self.image.toImage()
@@ -34,7 +43,6 @@ class ImageLabel(QWidget):
         painter.end()
 
         self.image = QPixmap.fromImage(image_for_drawing)
-
         self.labelPic.setPixmap(self.image)
         self.labelPic.resize(self.image.width(), self.image.height())
 
@@ -61,7 +69,7 @@ class ImageLabel(QWidget):
         #find if the face is already exist in our database or not
         face_encoding = self.face_encodings[index]
         all_faces_encodings = self.get_all_face_encodings(faces)
-        compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.8)
+        compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.55)
         if any(compare_faces):
             matching_index = compare_faces.index(True)  # Get the index of the first match
             matched_name = faces.find()[matching_index]['name']
