@@ -26,6 +26,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Labeling picures (UI only)
 - [x] Reorganize files
 - [x] Fix circular imports problem
+- [x] Remove duplicates
 - [ ] Labelling pictures (backend: save the name and the face in the database) [ Andrew, Ebram ]
       
         - Run the algorithm on the unlabeled images [Ebram]
@@ -38,7 +39,6 @@ This repository contains the implementation of an image face tagging tool. The t
 - [ ] View Labeled Images backend
 - [ ] Implement the search method for the labelled page 
 - [ ] Delete image option
-- [ ] Remove duplicates [ Ashkar ]
 - [x] Create Executable
 - [ ] Testing
 - [ ] Installation Steps
