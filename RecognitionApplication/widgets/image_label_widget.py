@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QLabel, QWidget, QInputDialog, QMessageBox
 from PyQt6.QtCore import Qt, QRect
-from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor, QPen, QImage
+from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor, QPen, QImage, QBrush
 from services.database import Database
 import face_recognition
 import numpy as np
@@ -20,7 +20,11 @@ class ImageLabel(QWidget):
         
         self.face_locations = face_locations
         self.face_encodings = face_encodings  # for the database
+        self.face_names = ["Unknown"] * len(face_locations)  # Initialize with "Unknown"
+
         self.initUI()
+        self.load_names()
+
 
     def initUI(self):
         self.setFixedSize(self.image.size())
@@ -31,15 +35,27 @@ class ImageLabel(QWidget):
     def paintEvent(self, event):
         image_for_drawing = self.image.toImage()
         painter = QPainter(image_for_drawing)
-
+        self.penRectangle = QPen(Qt.GlobalColor.white)
+        self.penRectangle.setWidth(3)
+        painter.setPen(self.penRectangle)
+        
+        self.brushRectangle = QBrush(Qt.GlobalColor.white)
+        painter.setBrush(self.brushRectangle)
+        
+        painter.drawRect(self.face_locations[0][3]-5, self.face_locations[0][0]-30, 80, 25)
+        
+        painter.setBrush(QBrush(Qt.GlobalColor.transparent))
+        
         pen = QPen(QColor(0, 255, 0), 2)
         painter.setPen(pen)
         font = QFont('Arial', 14)
         painter.setFont(font)
 
-        for (top, right, bottom, left) in self.face_locations:
+        for i,(top, right, bottom, left) in enumerate(self.face_locations):
             rect = QRect(left, top, right - left, bottom - top)
             painter.drawRect(rect)
+            painter.drawText(left, top - 10, self.face_names[i])  # Draw the name above the rectangle
+
         painter.end()
 
         self.image = QPixmap.fromImage(image_for_drawing)
@@ -60,7 +76,17 @@ class ImageLabel(QWidget):
             face_encoding_np = np.array(face_encoding_list)  # Convert list to numpy array
             encodings.append(face_encoding_np)
         return encodings
-    
+    def load_names(self):
+        database = Database()
+        db = database.client['all_faces']
+        faces = db['faces_data']
+        all_faces_encodings = self.get_all_face_encodings(faces)
+        for i, face_encoding in enumerate(self.face_encodings):
+            compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.6)
+            if any(compare_faces):
+                matching_index = compare_faces.index(True)
+                self.face_names[i] = faces.find()[matching_index]['name']
+
     def edit_name(self, index):
         database = Database()
         db =  database.client['all_faces']
@@ -86,3 +112,5 @@ class ImageLabel(QWidget):
                 "face_encoding": face_encoding.tolist()
             }
             faces.insert_one(document)
+            self.face_names[index] = name  # Update the name for the face
+            self.update()  # Repaint the widget to show the updated name
