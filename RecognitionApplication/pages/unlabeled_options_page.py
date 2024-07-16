@@ -3,10 +3,11 @@ from .upload_page import UploadPage
 from services.database import Database
 
 class UnlabelledOptionsPage(QMainWindow):
-    def __init__(self):
+    def __init__(self,main_window):
         super().__init__()
         self.setWindowTitle("Unlabelled Options")
         self.setGeometry(100, 100, 400, 200)
+        self.main_window = main_window
         self.initUI()
 
     def initUI(self):
@@ -21,6 +22,11 @@ class UnlabelledOptionsPage(QMainWindow):
         self.label_button = QPushButton("Label Images")
         self.label_button.clicked.connect(self.label_images)  # Placeholder functionality
         layout.addWidget(self.label_button)
+
+        
+        self.bb = QPushButton("Back")
+        self.bb.clicked.connect(self.bacKK)  # Placeholder functionality
+        layout.addWidget(self.bb)
 
     def open_upload_page(self):
         self.hide()
@@ -39,3 +45,6 @@ class UnlabelledOptionsPage(QMainWindow):
             self.all_images_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
+    def bacKK(self):
+        self.main_window.show()
+        self.hide()
