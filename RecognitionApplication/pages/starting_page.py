@@ -45,5 +45,5 @@ class StartingPage(QMainWindow):
     def open_unlabelled_options(self):
         from .unlabeled_options_page import UnlabelledOptionsPage
         self.hide()
-        self.unlabelled_options = UnlabelledOptionsPage()
+        self.unlabelled_options = UnlabelledOptionsPage(self)
         self.unlabelled_options.show()
