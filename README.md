@@ -27,18 +27,19 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Reorganize files
 - [x] Fix circular imports problem
 - [x] Remove duplicates
-- [ ] Labelling pictures (backend: save the name and the face in the database) [ Andrew, Ebram ]
-      
-        - Run the algorithm on the unlabeled images [Ebram]
-        - Saving the name and encondings [Andrew]
-      
-- [ ] Connect everything to the database, verify it all makes sense [ Ashkar, Omar]
-- [ ] Implement Cascading
-- [ ] Comfirmation page for uncertain cascading
-- [x] Fix styling
-- [ ] View Labeled Images backend
-- [ ] Implement the search method for the labelled page 
-- [ ] Delete image option
+- [x] Labelling pictures
+- [x] Implement Cascading
 - [x] Create Executable
+- [ ] Create Notebook for collab and migrate code [ Omar ]
+- [ ] Migrate database to spreadsheets [ Ashkar ]
+- [ ] More advanced removal of duplicates [ Ashkar ]
+- [ ] Delete image option [ Ashkar ]
+- [ ]  Make styling nicer [ Omar ]
+- [ ] Fix known bugs [ Ebram ]
+- [ ] Uploading photos enhancment [ Ebram ]
+- [ ] Store images in folder [ Andrew ]
+- [ ] View Labeled Images backend
+- [ ] Automate existing spreadsheets [ Omar ]
+- [ ] Implement the search method for the labelled page 
 - [ ] Testing
 - [ ] Installation Steps
