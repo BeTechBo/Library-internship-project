@@ -32,7 +32,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Create Executable
 - [ ] Create Notebook for collab and migrate code [ Omar ]
 - [ ] Migrate database to spreadsheets [ Ashkar ]
-- [ ] More advanced removal of duplicates [ Ashkar ] (what do you mean by this??)
+- [x] More advanced removal of duplicates [ Ashkar ] (what do you mean by this??)
 - [ ] Delete image option [ Ashkar ]
 - [ ]  Make styling nicer [ Omar ]
 - [ ] Fix known bugs [ Ebram ]
