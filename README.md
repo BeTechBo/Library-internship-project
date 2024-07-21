@@ -43,3 +43,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [ ] Implement the search method for the labelled page 
 - [ ] Testing
 - [ ] Installation Steps
+## Some problems we need to take care of 
+
+- When adding a lot of pictures the application became much slower (I am not sure how it will perform when we add much more images)
+- These is an eror when we update the names. When I update someone name and apply cascading that happens but the name shown on the green box is not updated(need more testing on other devices . Maybe I have something in the database that is not managed correctly)
