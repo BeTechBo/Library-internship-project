@@ -1,15 +1,16 @@
 from PyQt6.QtWidgets import QLabel, QWidget, QInputDialog, QMessageBox, QSizePolicy
 from PyQt6.QtCore import Qt, QRect
 from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor, QPen, QImage, QBrush
-from services.database import Database
 import face_recognition
 import numpy as np
+import pandas as pd
+import os
 
 class ImageLabel(QWidget):
     def __init__(self, image_array, face_locations, face_encodings):
         super().__init__()
         self.face_locations = face_locations
-        self.face_encodings = face_encodings  # for the database
+        self.face_encodings = face_encodings
         self.face_names = ["Unknown"] * len(face_locations)  # Initialize with "Unknown"
 
         # Convert numpy array to QImage
@@ -66,49 +67,60 @@ class ImageLabel(QWidget):
                 self.edit_name(i)
                 return
 
-    def get_all_face_encodings(self, faces):
-        encodings = []
-        for document in faces.find({}):  # Find all documents in the collection
-            face_encoding_list = document['face_encoding']
-            face_encoding_np = np.array(face_encoding_list)  # Convert list to numpy array
-            encodings.append(face_encoding_np)
-        return encodings
+    def get_all_face_encodings(self, csv_file):
+        try:
+            df = pd.read_csv(csv_file)
+            if df.empty:
+                return []
+            encodings = [np.array(eval(encoding)) for encoding in df['face_encoding']]
+            return encodings
+        except (pd.errors.EmptyDataError, FileNotFoundError):
+            return []
 
     def load_names(self):
-        database = Database()
-        db = database.client['all_faces']
-        faces = db['faces_data']
-        all_faces_encodings = self.get_all_face_encodings(faces)
+        csv_file = 'faces_data.csv'  # Path to your CSV file
+        if not os.path.exists(csv_file):
+            return
+
+        df = pd.read_csv(csv_file)
+        if df.empty:
+            return
+
+        all_faces_encodings = self.get_all_face_encodings(csv_file)
         for i, face_encoding in enumerate(self.face_encodings):
             compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.6)
             if any(compare_faces):
                 matching_index = compare_faces.index(True)
-                self.face_names[i] = faces.find()[matching_index]['name']
+                self.face_names[i] = df.iloc[matching_index]['name']
 
+    
     def edit_name(self, index):
-        database = Database()
-        db = database.client['all_faces']
-        faces = db['faces_data']
-        
-        # Find if the face is already in our database
+        csv_file = 'faces_data.csv'  # Path to your CSV file
+        try:
+            df = pd.read_csv(csv_file)
+        except (pd.errors.EmptyDataError, FileNotFoundError):
+            df = pd.DataFrame(columns=['name', 'face_encoding'])
+    
+        # Find if the face is already in our CSV
         face_encoding = self.face_encodings[index]
-        all_faces_encodings = self.get_all_face_encodings(faces)
+        all_faces_encodings = self.get_all_face_encodings(csv_file)
         compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.55)
         if any(compare_faces):
             matching_index = compare_faces.index(True)  # Get the index of the first match
-            matched_name = faces.find()[matching_index]['name']
+            matched_name = df.iloc[matching_index]['name']
             reply = QMessageBox.question(self, 'Match Found', f"The name for this person is {matched_name}. Do you want to edit it?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
             if reply == QMessageBox.StandardButton.No:
                 return
-            # Delete the document with matched_name if answer = yes
-            faces.delete_one({'name': matched_name})
-        
+            # Delete the row with the matched name if answer is yes
+            df = df.drop(matching_index).reset_index(drop=True)
+       
         name, ok = QInputDialog.getText(self, 'Edit Name', 'Enter the name:')
         if ok and name:
-            document = {
-                "name": name,
-                "face_encoding": face_encoding.tolist()
-            }
-            faces.insert_one(document)
+            new_entry = pd.DataFrame({
+                "name": [name],
+                "face_encoding": [face_encoding.tolist()]
+            })
+            df = pd.concat([df, new_entry], ignore_index=True)
+            df.to_csv(csv_file, index=False)
             self.face_names[index] = name  # Update the name for the face
             self.update()  # Repaint the widget to show the updated name
