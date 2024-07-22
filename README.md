@@ -31,9 +31,9 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Implement Cascading
 - [x] Create Executable
 - [x] More advanced removal of duplicates
+- [x] Delete image option
 - [ ] Create Notebook for collab and migrate code [ Omar ]
-- [ ] Migrate database to spreadsheets [ Ashkar ]
-- [x] Delete image option [ Ashkar ]
+- [ ] Migrate database to spreadsheets [ Ashkar ](partially done)
 - [ ]  Make styling nicer [ Omar ]
 - [ ] Fix known bugs [ Ebram ]
 - [ ] Uploading photos enhancment [ Ebram ]
