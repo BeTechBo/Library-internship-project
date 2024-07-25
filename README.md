@@ -32,12 +32,12 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Create Executable
 - [x] More advanced removal of duplicates
 - [x] Delete image option
+- [x] Store images in folder
 - [ ] Create Notebook for collab and migrate code [ Omar ]
 - [ ] Migrate database to spreadsheets [ Ashkar ](partially done)
 - [ ]  Make styling nicer [ Omar ]
 - [ ] Fix known bugs [ Ebram ]
 - [ ] Uploading photos enhancment [ Ebram ]
-- [ ] Store images in folder [ Andrew ]
 - [ ] View Labeled Images backend
 - [ ] Automate existing spreadsheets [ Omar ]
 - [ ] Implement the search method for the labelled page 
