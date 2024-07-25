@@ -45,7 +45,7 @@ class ImageLabel(QWidget):
         height_scale = scaled_image.height() / self.image.height()
 
         self.scaled_face_locations = []
-        for top, right, bottom, left in self.face_locations:
+        for index, (top, right, bottom, left) in enumerate(self.face_locations):
             # Scale face locations to fit the scaled image
             scaled_top = top * height_scale
             scaled_right = right * width_scale
@@ -54,7 +54,7 @@ class ImageLabel(QWidget):
 
             self.scaled_face_locations.append(QRect(int(scaled_left), int(scaled_top), int(scaled_right - scaled_left), int(scaled_bottom - scaled_top)))
             painter.drawRect(self.scaled_face_locations[-1])
-            painter.drawText(self.scaled_face_locations[-1].left(), self.scaled_face_locations[-1].top() - 10, self.face_names[self.scaled_face_locations.index(self.scaled_face_locations[-1])])
+            painter.drawText(self.scaled_face_locations[-1].left(), self.scaled_face_locations[-1].top() - 10, self.face_names[index])  # Correctly use the index
 
         painter.end()
 
@@ -88,12 +88,13 @@ class ImageLabel(QWidget):
 
         all_faces_encodings = self.get_all_face_encodings(csv_file)
         for i, face_encoding in enumerate(self.face_encodings):
-            compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.6)
-            if any(compare_faces):
-                matching_index = compare_faces.index(True)
-                self.face_names[i] = df.iloc[matching_index]['name']
+            if all_faces_encodings:
+                distances = face_recognition.face_distance(all_faces_encodings, face_encoding)
+                best_match_index = np.argmin(distances)
+                if distances[best_match_index] <= 0.6:
+                    self.face_names[i] = df.iloc[best_match_index]['name']
+        print("Loaded names:", self.face_names)  # Debug print
 
-    
     def edit_name(self, index):
         csv_file = 'faces_data.csv'  # Path to your CSV file
         try:
@@ -104,15 +105,16 @@ class ImageLabel(QWidget):
         # Find if the face is already in our CSV
         face_encoding = self.face_encodings[index]
         all_faces_encodings = self.get_all_face_encodings(csv_file)
-        compare_faces = face_recognition.compare_faces(all_faces_encodings, face_encoding, tolerance=0.55)
-        if any(compare_faces):
-            matching_index = compare_faces.index(True)  # Get the index of the first match
-            matched_name = df.iloc[matching_index]['name']
-            reply = QMessageBox.question(self, 'Match Found', f"The name for this person is {matched_name}. Do you want to edit it?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
-            if reply == QMessageBox.StandardButton.No:
-                return
-            # Delete the row with the matched name if answer is yes
-            df = df.drop(matching_index).reset_index(drop=True)
+        if all_faces_encodings:
+            distances = face_recognition.face_distance(all_faces_encodings, face_encoding)
+            best_match_index = np.argmin(distances)
+            if distances[best_match_index] <= 0.55:
+                matched_name = df.iloc[best_match_index]['name']
+                reply = QMessageBox.question(self, 'Match Found', f"The name for this person is {matched_name}. Do you want to edit it?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+                if reply == QMessageBox.StandardButton.No:
+                    return
+                # Delete the row with the matched name if answer is yes
+                df = df.drop(best_match_index).reset_index(drop=True)
        
         name, ok = QInputDialog.getText(self, 'Edit Name', 'Enter the name:')
         if ok and name:
@@ -123,4 +125,6 @@ class ImageLabel(QWidget):
             df = pd.concat([df, new_entry], ignore_index=True)
             df.to_csv(csv_file, index=False)
             self.face_names[index] = name  # Update the name for the face
+            print(f"Updated name at index {index}: {name}")  # Debug print
+            self.load_names()  # Reload names from CSV after update
             self.update()  # Repaint the widget to show the updated name
