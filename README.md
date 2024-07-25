@@ -33,6 +33,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] More advanced removal of duplicates
 - [x] Delete image option
 - [x] Store images in folder
+- [ ] Upload images to a folder [ Andrew ]
 - [ ] Create Notebook for collab and migrate code [ Omar ]
 - [ ] Migrate database to spreadsheets [ Ashkar ](partially done)
 - [ ]  Make styling nicer [ Omar ]
