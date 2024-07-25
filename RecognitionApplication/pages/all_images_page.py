@@ -3,12 +3,12 @@ from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
 from gridfs import GridFS
 from PIL import Image
-import io
+import io, os
 import face_recognition
 import numpy as np
 
 class AllImagesWindow(QMainWindow):
-    def __init__(self, db):
+    def __init__(self):
         super().__init__()
 
         self.setWindowTitle('All Images')
@@ -23,10 +23,7 @@ class AllImagesWindow(QMainWindow):
         self.listWidget.setIconSize(QSize(100, 100))
         self.listWidget.setStyleSheet("QListWidget { margin: 10px; }")
 
-        self.db = db
-        self.fs = GridFS(self.db)
-
-        self.load_images()
+        self.load_images_from_folder('uploaded_images')
 
         self.layout.addWidget(self.listWidget)
 
@@ -46,17 +43,28 @@ class AllImagesWindow(QMainWindow):
         # Connect double-click signal to the slot
         self.listWidget.itemDoubleClicked.connect(self.item_double_clicked)
 
-    def load_images(self):
-        # Fetch all images from GridFS and display them in the list widget
-        files = self.fs.find()
-        for file in files:
-            item = QListWidgetItem()
-            pixmap = QPixmap()
-            pixmap.loadFromData(file.read())
-            pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-            item.setIcon(QIcon(pixmap))
-            item.setText(file.filename)
-            self.listWidget.addItem(item)
+    def load_images_from_folder(self, folder_path):
+        # Load all images from a folder and display them in the list widget
+        for filename in os.listdir(folder_path):
+            if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+                item = QListWidgetItem()
+                pixmap = QPixmap(os.path.join(folder_path, filename))
+                pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                item.setIcon(QIcon(pixmap))
+                item.setText(filename)
+                self.listWidget.addItem(item)
+                
+    # def load_images(self):
+    #     # Fetch all images from GridFS and display them in the list widget
+    #     files = self.fs.find()
+    #     for file in files:
+    #         item = QListWidgetItem()
+    #         pixmap = QPixmap()
+    #         pixmap.loadFromData(file.read())
+    #         pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+    #         item.setIcon(QIcon(pixmap))
+    #         item.setText(file.filename)
+    #         self.listWidget.addItem(item)
 
     def show_item(self):
         current_item = self.listWidget.currentItem()
@@ -88,19 +96,8 @@ class AllImagesWindow(QMainWindow):
             item_text = current_item.text()
             print(f"Double-clicked on: {item_text}")
 
-            # Retrieve the image data from GridFS
-            image_file = self.fs.find_one({"filename": item_text})
-            image_data = image_file.read()
-
-            # Convert the binary data to an image using PIL
-            image = Image.open(io.BytesIO(image_data))
-            
-            # Convert the image to a NumPy array and ensure it's in RGB format
-            image_array = np.array(image.convert('RGB'))
-
-            # Pass the image array to the LabellingPic class
             from .labeling_picture_page import LabellingPic
-            self.label_image = LabellingPic(image_array)
+            self.label_image = LabellingPic(item_text)
             self.label_image.show()
 
     def go_back(self):

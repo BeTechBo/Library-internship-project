@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout,QPushButton,QMessageBox
 from .upload_page import UploadPage
-from services.database import Database
+#from services.database import Database
 
 class UnlabelledOptionsPage(QMainWindow):
     def __init__(self,main_window):
@@ -39,9 +39,9 @@ class UnlabelledOptionsPage(QMainWindow):
         from .all_images_page import AllImagesWindow
         # Open a window to display all images from the 'all_images' database
         try:
-            database = Database()
-            db =  database.client['all_images']
-            self.all_images_window = AllImagesWindow(db)
+            #database = Database()
+            #db =  database.client['all_images']
+            self.all_images_window = AllImagesWindow()
             self.all_images_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
