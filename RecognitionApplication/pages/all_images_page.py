@@ -1,11 +1,7 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QListWidget, QListWidgetItem, QMessageBox
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
-from gridfs import GridFS
-from PIL import Image
-import io, os
-import face_recognition
-import numpy as np
+import os
 
 class AllImagesWindow(QMainWindow):
     def __init__(self):
@@ -24,7 +20,7 @@ class AllImagesWindow(QMainWindow):
         self.listWidget.setStyleSheet("QListWidget { margin: 10px; }")
 
         self.load_images_from_folder('uploaded_images')
-
+        
         self.layout.addWidget(self.listWidget)
 
         back_button = QPushButton("Back")
@@ -53,18 +49,6 @@ class AllImagesWindow(QMainWindow):
                 item.setIcon(QIcon(pixmap))
                 item.setText(filename)
                 self.listWidget.addItem(item)
-                
-    # def load_images(self):
-    #     # Fetch all images from GridFS and display them in the list widget
-    #     files = self.fs.find()
-    #     for file in files:
-    #         item = QListWidgetItem()
-    #         pixmap = QPixmap()
-    #         pixmap.loadFromData(file.read())
-    #         pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-    #         item.setIcon(QIcon(pixmap))
-    #         item.setText(file.filename)
-    #         self.listWidget.addItem(item)
 
     def show_item(self):
         current_item = self.listWidget.currentItem()
@@ -83,12 +67,15 @@ class AllImagesWindow(QMainWindow):
                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                          QMessageBox.StandardButton.No)
             if reply == QMessageBox.StandardButton.Yes:
-                # Delete the file from GridFS
-                file = self.fs.find_one({"filename": item_text})
-                if file:
-                    self.fs.delete(file._id)
+                # Delete the file from the folder
+                folder_path = 'uploaded_images'
+                file_path = os.path.join(folder_path, item_text)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
                     self.listWidget.takeItem(self.listWidget.row(current_item))
                     QMessageBox.information(self, "Delete", f"{item_text} has been deleted.")
+                else:
+                    QMessageBox.warning(self, "Delete", f"{item_text} not found.")
 
     def item_double_clicked(self, item):
         current_item = self.listWidget.currentItem()

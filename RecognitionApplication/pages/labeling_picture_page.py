@@ -32,8 +32,6 @@ class LabellingPic(QMainWindow):
 
         # Load image and detect faces
         image_dir = "uploaded_images"
-
-        # image_dir = "C:\\Users\\user\\Downloads\\Library_Internship\\GitHub\\LibraryFacialRecognition\\RecognitionApplication\\uploaded_images"
         image_path = os.path.join(image_dir, self.image_file_name)        
         image = face_recognition.load_image_file(image_path)
         face_locations = face_recognition.face_locations(image)

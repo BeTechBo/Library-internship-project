@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout,QPushButton,QMessageBox
 from .upload_page import UploadPage
-#from services.database import Database
+import os
 
 class UnlabelledOptionsPage(QMainWindow):
     def __init__(self,main_window):
@@ -36,11 +36,13 @@ class UnlabelledOptionsPage(QMainWindow):
     #def label_images(self):
     #   QMessageBox.information(self, "Label Images", "Label images functionality to be implemented.")
     def label_images(self):
+        if not os.path.exists('uploaded_images'):
+            QMessageBox.warning(self, "No Images Found", "Upload images first.")
+            return
+        
         from .all_images_page import AllImagesWindow
         # Open a window to display all images from the 'all_images' database
         try:
-            #database = Database()
-            #db =  database.client['all_images']
             self.all_images_window = AllImagesWindow()
             self.all_images_window.show()
         except Exception as e:
