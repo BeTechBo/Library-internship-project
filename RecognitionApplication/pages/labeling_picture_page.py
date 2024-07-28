@@ -8,11 +8,12 @@ from PyQt6.QtWidgets import QSizePolicy
 
 
 class LabellingPic(QMainWindow):
-    def __init__(self, image_file_name):
+    def __init__(self, image_file_name, folder):
         super().__init__()
         self.image_file_name = image_file_name
         self.setGeometry(200, 200, 800, 600)  # Adjust window size as needed
         self.setWindowTitle("Labelling Pictures")
+        self.folder_name = folder
         self.initUI()
 
     def initUI(self):
@@ -31,11 +32,11 @@ class LabellingPic(QMainWindow):
         main_layout.addWidget(self.label)
 
         # Load image and detect faces
-        image_dir = "uploaded_images"
+        image_dir = self.folder_name
         image_path = os.path.join(image_dir, self.image_file_name)        
         image = face_recognition.load_image_file(image_path)
         face_locations = face_recognition.face_locations(image)
-        face_encodings = face_recognition.face_encodings(image) #for database
+        face_encodings = face_recognition.face_encodings(image)
 
         # Create custom widget for displaying image with rectangles
         self.image_label = ImageLabel(image_path, face_locations, face_encodings)

@@ -41,7 +41,6 @@ class UnlabelledOptionsPage(QMainWindow):
             return
         
         from .all_images_page import AllImagesWindow
-        # Open a window to display all images from the 'all_images' database
         try:
             self.all_images_window = AllImagesWindow()
             self.all_images_window.show()

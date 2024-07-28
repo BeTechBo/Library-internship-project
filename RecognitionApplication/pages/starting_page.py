@@ -1,8 +1,8 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QMessageBox
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 from PyQt6.QtCore import Qt
-from widgets.scroll_list_example_widget import ScrollListExample
+import os
 
 class StartingPage(QMainWindow):
     def __init__(self):
@@ -38,9 +38,17 @@ class StartingPage(QMainWindow):
         main_layout.addLayout(button_layout)
 
     def show_labelled_photos(self):
+        if not os.path.exists('labelled_images'):
+            QMessageBox.warning(self, "No Labelled Images", "Label the images first.")
+            return
+            
+        from .labelled_images_page import LabelledImagesWindow
         self.hide()
-        self.labelled_photos_window = ScrollListExample(self)  # Pass the reference to the main window
-        self.labelled_photos_window.show()
+        try:
+            self.labelled_images_window = LabelledImagesWindow(self)
+            self.labelled_images_window.show()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
     def open_unlabelled_options(self):
         from .unlabeled_options_page import UnlabelledOptionsPage

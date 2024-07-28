@@ -4,12 +4,13 @@ from PyQt6.QtGui import QPixmap, QIcon
 import os
 import shutil
 
-class AllImagesWindow(QMainWindow):
-    def __init__(self):
+class LabelledImagesWindow(QMainWindow):
+    def __init__(self, main_window):
         super().__init__()
 
-        self.setWindowTitle('All Images')
+        self.setWindowTitle('Labelled Images')
         self.setGeometry(100, 100, 800, 600)
+        self.main_window = main_window
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -20,7 +21,7 @@ class AllImagesWindow(QMainWindow):
         self.listWidget.setIconSize(QSize(100, 100))
         self.listWidget.setStyleSheet("QListWidget { margin: 10px; }")
 
-        self.load_images_from_folder('uploaded_images')
+        self.load_images_from_folder('labelled_images')
         
         self.layout.addWidget(self.listWidget)
 
@@ -69,7 +70,7 @@ class AllImagesWindow(QMainWindow):
                                          QMessageBox.StandardButton.No)
             if reply == QMessageBox.StandardButton.Yes:
                 # Delete the file from the folder
-                folder_path = 'uploaded_images'
+                folder_path = 'labelled_images'
                 file_path = os.path.join(folder_path, item_text)
                 if os.path.exists(file_path):
                     os.remove(file_path)
@@ -85,23 +86,23 @@ class AllImagesWindow(QMainWindow):
             print(f"Double-clicked on: {item_text}")
 
             from .labeling_picture_page import LabellingPic
-            self.label_image = LabellingPic(item_text, 'uploaded_images')
+            self.label_image = LabellingPic(item_text, 'labelled_images')
             self.label_image.show()
             self.label_image.closeEvent = lambda event: self.prompt_move_image(item_text, event)
 
     def prompt_move_image(self, item_text, event):
         reply = QMessageBox.question(self, 'Move Confirmation',
-                                     f"Do you want to move {item_text} to the 'labelled images' section?",
+                                     f"Do you want to return {item_text} to the 'unlabelled images' section?",
                                      QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                      QMessageBox.StandardButton.No)
         if reply == QMessageBox.StandardButton.Yes:
-            src_path = os.path.join('uploaded_images', item_text)
-            dest_path = os.path.join('labelled_images', item_text)
-            if not os.path.exists('labelled_images'):
-                os.makedirs('labelled_images')
+            src_path = os.path.join('labelled_images', item_text)
+            dest_path = os.path.join('uploaded_images', item_text)
+            if not os.path.exists('uploaded_images'):
+                os.makedirs('uploaded_images')
             if os.path.exists(dest_path):
                 replace_reply = QMessageBox.question(self, 'Replace Confirmation',
-                                             f"The image {item_text} already exists in 'labelled images'. Do you want to replace it?",
+                                             f"The image {item_text} already exists in 'unlabelled images'. Do you want to replace it?",
                                              QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                                              QMessageBox.StandardButton.No)
                 if replace_reply != QMessageBox.StandardButton.Yes:
@@ -109,8 +110,9 @@ class AllImagesWindow(QMainWindow):
                     return
             shutil.move(src_path, dest_path)
             self.listWidget.takeItem(self.listWidget.row(self.listWidget.findItems(item_text, Qt.MatchFlag.MatchExactly)[0]))
-            QMessageBox.information(self, "Move", f"{item_text} has been moved to 'labelled images'.")
+            QMessageBox.information(self, "Move", f"{item_text} has been moved to 'unlabelled images'.")
         event.accept()
 
     def go_back(self):
-        self.close()
+        self.main_window.show()
+        self.hide()
