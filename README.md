@@ -34,7 +34,7 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Delete image option
 - [x] Store images in folder
 - [x] Upload images to a folder
-- [ ] Moving pictures to from unlabelled to labelled section [ Andrew ]
+- [ ] Moving pictures from unlabelled to labelled section [ Andrew ]
 - [ ] Delete multiple images (Optional)
 - [ ] Create Notebook for collab and migrate code [ Omar ]
 - [ ] Migrate database to spreadsheets [ Ashkar ](partially done)
