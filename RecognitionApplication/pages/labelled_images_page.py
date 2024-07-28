@@ -88,30 +88,6 @@ class LabelledImagesWindow(QMainWindow):
             from .labeling_picture_page import LabellingPic
             self.label_image = LabellingPic(item_text, 'labelled_images')
             self.label_image.show()
-            self.label_image.closeEvent = lambda event: self.prompt_move_image(item_text, event)
-
-    def prompt_move_image(self, item_text, event):
-        reply = QMessageBox.question(self, 'Move Confirmation',
-                                     f"Do you want to return {item_text} to the 'unlabelled images' section?",
-                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                                     QMessageBox.StandardButton.No)
-        if reply == QMessageBox.StandardButton.Yes:
-            src_path = os.path.join('labelled_images', item_text)
-            dest_path = os.path.join('uploaded_images', item_text)
-            if not os.path.exists('uploaded_images'):
-                os.makedirs('uploaded_images')
-            if os.path.exists(dest_path):
-                replace_reply = QMessageBox.question(self, 'Replace Confirmation',
-                                             f"The image {item_text} already exists in 'unlabelled images'. Do you want to replace it?",
-                                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                                             QMessageBox.StandardButton.No)
-                if replace_reply != QMessageBox.StandardButton.Yes:
-                    event.accept()
-                    return
-            shutil.move(src_path, dest_path)
-            self.listWidget.takeItem(self.listWidget.row(self.listWidget.findItems(item_text, Qt.MatchFlag.MatchExactly)[0]))
-            QMessageBox.information(self, "Move", f"{item_text} has been moved to 'unlabelled images'.")
-        event.accept()
 
     def go_back(self):
         self.main_window.show()
