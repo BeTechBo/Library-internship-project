@@ -1,12 +1,16 @@
 import os
 import hashlib
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QFormLayout, QLabel, QPushButton, QFileDialog, QMessageBox, QTabWidget
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QFormLayout, QLabel, QPushButton, QFileDialog, QMessageBox, QTabWidget, QDialog, QScrollArea, QCheckBox, QGridLayout, QDialogButtonBox
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
+from gridfs import GridFS
+from services.database import Database
 
 class UploadPage(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.database = Database()
+        self.client = self.database.client
         self.setWindowTitle("Image Upload Example")
         self.setGeometry(100, 100, 800, 600)
 
@@ -21,6 +25,12 @@ class UploadPage(QMainWindow):
 
         self.upload_dir = os.path.join(os.getcwd(), 'uploaded_images')
         os.makedirs(self.upload_dir, exist_ok=True)
+
+        self.db = self.client['all_images']
+        self.fs = GridFS(self.db)
+
+        # Update existing images in the database with image_hash field
+        self.update_existing_images()
 
         self.option_upload_single()
         self.option_upload_multiple()
@@ -59,13 +69,14 @@ class UploadPage(QMainWindow):
                                                        "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)")
             if file_name:
                 if self.image_exists(file_name):
-                    QMessageBox.warning(self, "Duplicate Image", "This image already exists in the directory.")
+                    QMessageBox.warning(self, "Duplicate Image", "This image already exists in the database.")
                 else:
-                    pixmap = QPixmap(file_name)
-                    self.image_label_single.setPixmap(pixmap.scaled(self.image_label_single.size(), Qt.AspectRatioMode.KeepAspectRatio))
-                    self.image_label_single.setText("")
-                    self.save_image(file_name)
-                    
+                    if self.confirm_upload([file_name]):
+                        pixmap = QPixmap(file_name)
+                        self.image_label_single.setPixmap(pixmap.scaled(self.image_label_single.size(), Qt.AspectRatioMode.KeepAspectRatio))
+                        self.image_label_single.setText("")
+                        image_id = self.save_image(file_name)
+                        # Optionally store image_id in your database or use it as needed
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
@@ -75,24 +86,23 @@ class UploadPage(QMainWindow):
                                                          "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)")
             if file_names:
                 new_files = [file_name for file_name in file_names if not self.image_exists(file_name)]
-                for file_name in new_files:
-                    self.save_image(file_name)
-                if new_files:
-                    QMessageBox.information(self, "Images Uploaded", f"Uploaded {len(new_files)} images.")
-                if len(new_files) < len(file_names):
-                    QMessageBox.warning(self, "Duplicate Images", f"{len(file_names) - len(new_files)} images were duplicates and were not uploaded.")
+                if self.confirm_upload(new_files):
+                    image_ids = [self.save_image(file_name) for file_name in new_files]
+                    if image_ids:
+                        QMessageBox.information(self, "Images Uploaded", f"Uploaded {len(image_ids)} images.")
+                    if len(new_files) < len(file_names):
+                        QMessageBox.warning(self, "Duplicate Images", f"{len(file_names) - len(new_files)} images were duplicates and were not uploaded.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
     def save_image(self, file_name):
         try:
-            # Generate the destination file path
-            destination = os.path.join(self.upload_dir, os.path.basename(file_name))
-            with open(file_name, 'rb') as src_file:
-                image_data = src_file.read()
-                with open(destination, 'wb') as dest_file:
-                    dest_file.write(image_data)
-            print(f"Image saved to directory with path: {destination}")
+            with open(file_name, 'rb') as image_file:
+                image_data = image_file.read()
+                image_hash = hashlib.sha256(image_data).hexdigest()  # Compute the hash of the image data
+                image_id = self.fs.put(image_data, filename=os.path.basename(file_name), metadata={'image_hash': image_hash})
+            print(f"Image saved to MongoDB GridFS with id: {image_id}")
+            return image_id  # Return the image_id for reference
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save image: {e}")
 
@@ -100,16 +110,8 @@ class UploadPage(QMainWindow):
         try:
             with open(file_name, 'rb') as image_file:
                 image_data = image_file.read()
-                image_hash = hashlib.sha256(image_data).hexdigest()
-                # Check if an image with this hash already exists in the upload directory
-                for existing_file in os.listdir(self.upload_dir):
-                    existing_file_path = os.path.join(self.upload_dir, existing_file)
-                    with open(existing_file_path, 'rb') as existing_image_file:
-                        existing_image_data = existing_image_file.read()
-                        existing_image_hash = hashlib.sha256(existing_image_data).hexdigest()
-                        if existing_image_hash == image_hash:
-                            return True
-                return False
+                image_hash = hashlib.sha256(image_data).hexdigest()  # Compute the hash of the image data
+                return self.fs.exists({'metadata.image_hash': image_hash})  # Check if an image with this hash already exists
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to check if image exists: {e}")
             return False
@@ -119,3 +121,56 @@ class UploadPage(QMainWindow):
         from .starting_page import StartingPage
         self.start = StartingPage()
         self.start.show()
+
+    def update_existing_images(self):
+        try:
+            for grid_out in self.fs.find():
+                if grid_out.metadata is None or 'image_hash' not in grid_out.metadata:
+                    image_data = grid_out.read()
+                    image_hash = hashlib.sha256(image_data).hexdigest()
+                    self.fs.delete(grid_out._id)  # Delete the old file
+                    self.fs.put(image_data, filename=grid_out.filename, metadata={'image_hash': image_hash})  # Add the file with new metadata
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to update existing images: {e}")
+
+    def confirm_upload(self, file_names):
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Confirm Upload")
+        dialog.setGeometry(100, 100, 600, 400)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_content = QWidget()
+        scroll_layout = QGridLayout(scroll_content)
+        scroll_content.setLayout(scroll_layout)
+
+        checkboxes = []
+        for i, file_name in enumerate(file_names):
+            pixmap = QPixmap(file_name)
+            image_label = QLabel()
+            image_label.setPixmap(pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio))
+
+            checkbox = QCheckBox()
+            checkbox.setChecked(True)
+
+            checkboxes.append((checkbox, file_name))
+            scroll_layout.addWidget(image_label, i // 4, (i % 4) * 2)
+            scroll_layout.addWidget(checkbox, i // 4, (i % 4) * 2 + 1)
+
+        scroll_area.setWidget(scroll_content)
+
+        dialog_layout = QVBoxLayout(dialog)
+        dialog_layout.addWidget(scroll_area)
+
+        button_box = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        button_box.accepted.connect(dialog.accept)
+        button_box.rejected.connect(dialog.reject)
+        dialog_layout.addWidget(button_box)
+
+        result = dialog.exec()
+
+        if result == QDialog.DialogCode.Accepted:
+            selected_files = [file_name for checkbox, file_name in checkboxes if checkbox.isChecked()]
+            return selected_files
+        else:
+            return []
