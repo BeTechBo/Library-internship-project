@@ -35,18 +35,14 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Store images in folder
 - [x] Upload images to a folder
 - [x] Moving pictures from unlabelled to labelled section
-- [ ] Delete multiple images (Optional)
 - [ ] Create Notebook for collab and migrate code [ Omar ]
-- [ ] Migrate database to spreadsheets [ Ashkar ](partially done)
-- [ ]  Make styling nicer [ Omar ]
-- [ ] Fix known bugs [ Ebram ]
-- [ ] Uploading photos enhancment [ Ebram ]
-- [ ] View Labeled Images backend
+- [x] Migrate database to spreadsheets
+- [x] Uploading photos enhancment
+- [ ] View Labeled Images backend [ Ebram and Andrew ]
+- [ ] Make styling nicer [ Omar ]
 - [ ] Automate existing spreadsheets [ Omar ]
-- [ ] Implement the search method for the labelled page 
+- [ ] Implement the search method for the labelled page [ Ashkar ]
+- [ ] Delete multiple images
 - [ ] Testing
 - [ ] Installation Steps
-## Some problems we need to take care of 
 
-- When adding a lot of pictures the application became much slower (I am not sure how it will perform when we add much more images)
-- These is an eror when we update the names. When I update someone name and apply cascading that happens but the name shown on the green box is not updated(need more testing on other devices . Maybe I have something in the database that is not managed correctly)
