@@ -9,6 +9,7 @@ import os
 class ImageLabel(QWidget):
     def __init__(self, image_path, face_locations, face_encodings):
         super().__init__()
+        self.image_path = image_path
         self.labelPic = QLabel(self)
         self.original_image = QPixmap(image_path)
         self.face_locations = face_locations
@@ -118,7 +119,8 @@ class ImageLabel(QWidget):
                     self.face_names[i] = df.iloc[best_match_index]['name']
         print("Loaded names:", self.face_names)  # Debug print
 
-    
+        self.save_image_names()  # Save image and face names to CSV
+
     def edit_name(self, index):
         csv_file = 'faces_data.csv'  # Path to your CSV file
         try:
@@ -152,3 +154,34 @@ class ImageLabel(QWidget):
             print(f"Updated name at index {index}: {name}")  # Debug print
             self.load_names()  # Reload names from CSV after update
             self.update()  # Repaint the widget to show the updated name
+            self.save_image_names()  # Save image and face names to CSV
+
+    def save_image_names(self):
+        image_name = os.path.basename(self.image_path)  # Get the image file name
+        data = {
+            "image_name": image_name,
+            "face_names": ", ".join(self.face_names)  # Join all face names into a single string
+        }
+
+        csv_file = "image_face_names.csv"
+        
+        # Check if the file exists
+        if os.path.exists(csv_file):
+            # Read the existing data
+            df = pd.read_csv(csv_file)
+
+            # Check if the image name already exists
+            if image_name in df['image_name'].values:
+                # Update the existing row
+                df.loc[df['image_name'] == image_name, 'face_names'] = data['face_names']
+            else:
+                # Append a new row
+                df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
+        else:
+            # Create a new DataFrame if the file does not exist
+            df = pd.DataFrame([data])
+
+        # Write the DataFrame to the CSV file
+        df.to_csv(csv_file, index=False)
+        
+        print(f"Saved image names for {image_name}")  # Debug print
