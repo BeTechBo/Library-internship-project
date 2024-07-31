@@ -89,6 +89,7 @@ class AllImagesWindow(QMainWindow):
             self.label_image.show()
             self.label_image.closeEvent = lambda event: self.prompt_move_image(item_text, event)
 
+
     def prompt_move_image(self, item_text, event):
         reply = QMessageBox.question(self, 'Move Confirmation',
                                      f"Do you want to move {item_text} to the 'labelled images' section?",
@@ -97,19 +98,45 @@ class AllImagesWindow(QMainWindow):
         if reply == QMessageBox.StandardButton.Yes:
             src_path = os.path.join('uploaded_images', item_text)
             dest_path = os.path.join('labelled_images', item_text)
+            
             if not os.path.exists('labelled_images'):
                 os.makedirs('labelled_images')
-            if os.path.exists(dest_path):
+            
+            # Check if the same content image already exists
+            same_content = False
+            existing_file_path = None
+            for dest_filename in os.listdir('labelled_images'):
+                full_dest_path = os.path.join('labelled_images', dest_filename)
+                if open(src_path, 'rb').read() == open(full_dest_path, 'rb').read():
+                    same_content = True
+                    existing_file_path = full_dest_path
+                    break
+            
+            if same_content:
                 replace_reply = QMessageBox.question(self, 'Replace Confirmation',
-                                             f"The image {item_text} already exists in 'labelled images'. Do you want to replace it?",
-                                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                                             QMessageBox.StandardButton.No)
-                if replace_reply != QMessageBox.StandardButton.Yes:
+                                                     f"This image already exists in 'labelled images'. Do you want to replace it?",
+                                                     QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                                     QMessageBox.StandardButton.No)
+                if replace_reply == QMessageBox.StandardButton.Yes:
+                    if existing_file_path:
+                        os.remove(existing_file_path)  # Remove the existing image
+                else:
                     event.accept()
                     return
+            
+            if os.path.exists(dest_path) and not same_content:
+                base_name, extension = os.path.splitext(item_text)
+                counter = 1
+                new_dest_path = os.path.join('labelled_images', f"{base_name} ({counter}){extension}")
+                while os.path.exists(new_dest_path):
+                    counter += 1
+                    new_dest_path = os.path.join('labelled_images', f"{base_name} ({counter}){extension}")
+                dest_path = new_dest_path
+    
             shutil.move(src_path, dest_path)
             self.listWidget.takeItem(self.listWidget.row(self.listWidget.findItems(item_text, Qt.MatchFlag.MatchExactly)[0]))
             QMessageBox.information(self, "Move", f"{item_text} has been moved to 'labelled images'.")
+        
         event.accept()
 
     def go_back(self):
