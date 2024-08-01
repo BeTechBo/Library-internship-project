@@ -3,7 +3,8 @@ class StyleSheet:
     def style():
         return """
             * {
-                font-family: 'Impact';
+                font-family: 'Impact', sans-serif;
+                background-color: #1e1e1e;
             }
             QPushButton {
                 color: white;
