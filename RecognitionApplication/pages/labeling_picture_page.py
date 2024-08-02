@@ -14,6 +14,7 @@ class LabellingPic(QMainWindow):
         self.setGeometry(200, 200, 800, 600)  # Adjust window size as needed
         self.setWindowTitle("Labelling Pictures")
         self.folder_name = folder
+        self.final_move_image = False
         self.initUI()
 
     def initUI(self):
@@ -40,9 +41,14 @@ class LabellingPic(QMainWindow):
 
         # Create custom widget for displaying image with rectangles
         self.image_label = ImageLabel(image_path, face_locations, face_encodings)
+        self.final_move_image = self.image_label.move_image
+        self.image_label.image_loaded.connect(self.update_final_move_image)  # Connect the signal
         
         # Add the image_label widget to the main layout
         main_layout.addWidget(self.image_label)
 
         # Set size policy to expand with window size
         self.image_label.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        
+    def update_final_move_image(self, move_image):
+        self.final_move_image = move_image
