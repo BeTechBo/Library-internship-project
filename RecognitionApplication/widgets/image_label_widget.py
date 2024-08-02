@@ -275,3 +275,34 @@ class ImageLabel(QWidget):
         
         # Save the cropped face image
         face_pixmap.save(face_image_path)
+
+        # Update CSV file with new face image details
+        self.add_face_to_csv(name, face_image_path)
+
+    def add_face_to_csv(self, name, face_image_path):
+        image_name = os.path.basename(face_image_path)  # Get the image file name
+        csv_file = "image_face_names.csv"
+        data = {
+            "image_name": image_name,
+            "face_names": name
+        }
+        
+        # Check if the file exists
+        if os.path.exists(csv_file):
+            # Read the existing data
+            df = pd.read_csv(csv_file)
+    
+            # Check if the name already exists
+            if image_name in df['image_name'].values:
+                # Update the existing row
+                df.loc[df['image_name'] == image_name, 'face_names'] = data['face_names']
+            else:
+                # Append a new row
+                df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
+        else:
+            # Create a new DataFrame if the file does not exist
+            df = pd.DataFrame([data])
+    
+        # Write the DataFrame to the CSV file
+        df.to_csv(csv_file, index=False)
+        
