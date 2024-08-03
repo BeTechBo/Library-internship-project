@@ -2,6 +2,7 @@ from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QPushButton, QLis
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
 import os
+import pandas as pd
 import shutil
 
 class AllImagesWindow(QMainWindow):
@@ -126,7 +127,10 @@ class AllImagesWindow(QMainWindow):
             if replace_reply == QMessageBox.StandardButton.Yes:
                 if existing_file_path:
                     os.remove(existing_file_path)  # Remove the existing image
+                    # Remove the existing file entry from the CSV file
+                    self.remove_from_images_CSV(os.path.basename(existing_file_path))
             else:
+                self.remove_from_images_CSV(item_text)
                 return
     
         if os.path.exists(dest_path) and not same_content:
@@ -142,5 +146,14 @@ class AllImagesWindow(QMainWindow):
         self.listWidget.takeItem(self.listWidget.row(self.listWidget.findItems(item_text, Qt.MatchFlag.MatchExactly)[0]))
         QMessageBox.information(self, "Move", f"{item_text} has been moved to 'labelled images'.")
 
+    def remove_from_images_CSV(self, item_text):
+        # Remove the entry from the CSV file
+        csv_file = "image_face_names.csv"
+        if os.path.exists(csv_file):
+            df = pd.read_csv(csv_file)
+            if item_text in df['image_name'].values:
+                df = df[df['image_name'] != item_text]
+                df.to_csv(csv_file, index=False)
+        
     def go_back(self):
         self.close()
