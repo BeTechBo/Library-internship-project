@@ -61,11 +61,12 @@ class UploadPage(QMainWindow):
                 if self.image_exists(file_name):
                     QMessageBox.warning(self, "Duplicate Image", "This image already exists in the directory.")
                 else:
-                    if self.confirm_upload([file_name]):
-                        pixmap = QPixmap(file_name)
+                    selected_files = self.confirm_upload([file_name])
+                    if selected_files:
+                        pixmap = QPixmap(selected_files[0])
                         self.image_label_single.setPixmap(pixmap.scaled(self.image_label_single.size(), Qt.AspectRatioMode.KeepAspectRatio))
                         self.image_label_single.setText("")
-                        self.save_image(file_name)
+                        self.save_image(selected_files[0])
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
@@ -75,19 +76,18 @@ class UploadPage(QMainWindow):
                                                          "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)")
             if file_names:
                 new_files = [file_name for file_name in file_names if not self.image_exists(file_name)]
-                if self.confirm_upload(new_files):
-                    for file_name in new_files:
+                selected_files = self.confirm_upload(new_files)
+                if selected_files:
+                    for file_name in selected_files:
                         self.save_image(file_name)
-                    if new_files:
-                        QMessageBox.information(self, "Images Uploaded", f"Uploaded {len(new_files)} images.")
-                    if len(new_files) < len(file_names):
-                        QMessageBox.warning(self, "Duplicate Images", f"{len(file_names) - len(new_files)} images were duplicates and were not uploaded.")
+                    QMessageBox.information(self, "Images Uploaded", f"Uploaded {len(selected_files)} images.")
+                    if len(selected_files) < len(new_files):
+                        QMessageBox.warning(self, "Duplicate Images", f"{len(new_files) - len(selected_files)} images were duplicates and were not uploaded.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
 
     def save_image(self, file_name):
         try:
-            # Generate the destination file path
             base_name = os.path.basename(file_name)
             name, ext = os.path.splitext(base_name)
             destination = os.path.join(self.upload_dir, base_name)
@@ -111,7 +111,6 @@ class UploadPage(QMainWindow):
             with open(file_name, 'rb') as image_file:
                 image_data = image_file.read()
                 image_hash = hashlib.sha256(image_data).hexdigest()
-                # Check if an image with this hash already exists in the upload directory
                 for existing_file in os.listdir(self.upload_dir):
                     existing_file_path = os.path.join(self.upload_dir, existing_file)
                     with open(existing_file_path, 'rb') as existing_image_file:
