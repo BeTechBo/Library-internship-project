@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QLabel, QFileDialog
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QLabel, QFileDialog, QLineEdit
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
 import os
@@ -52,6 +52,11 @@ class LabelledImagesWindow(QMainWindow):
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()
         self.central_widget.setLayout(self.layout)
+
+        self.search_bar = QLineEdit()
+        self.search_bar.setPlaceholderText("Search folders...")
+        self.search_bar.textChanged.connect(self.filter_folders)
+        self.layout.addWidget(self.search_bar)
 
         self.folder_list_widget = QListWidget()
         self.folder_list_widget.setIconSize(QSize(100, 100))
@@ -110,6 +115,13 @@ class LabelledImagesWindow(QMainWindow):
 
                 item.setData(Qt.ItemDataRole.UserRole, os.path.join(folder_path, filename))
                 self.image_list_widget.addItem(item)
+
+    def filter_folders(self):
+        search_query = self.search_bar.text().lower()
+        for index in range(self.folder_list_widget.count()):
+            item = self.folder_list_widget.item(index)
+            folder_name = item.text().lower()
+            item.setHidden(search_query not in folder_name)
 
     def show_item(self):
         current_item = self.image_list_widget.currentItem()
