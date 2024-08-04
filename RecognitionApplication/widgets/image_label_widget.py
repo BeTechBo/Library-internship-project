@@ -13,6 +13,7 @@ class ImageLabel(QWidget):
     def __init__(self, image_path, face_locations, face_encodings):
         super().__init__()
         self.image_path = image_path
+        self.dest_path_csv_file = image_path
         self.labelPic = QLabel(self)
         self.original_image = QPixmap(image_path)
         self.face_locations = face_locations
@@ -123,13 +124,44 @@ class ImageLabel(QWidget):
                     self.face_names[i] = df.iloc[best_match_index]['name']
         print("Loaded names:", self.face_names)  # Debug print
 
+        self.rename_images()
         self.save_image_names()  # Save image and face names to CSV
         
         # Move the image if there are no "Unknown" names
         if not any(name == "Unknown" for name in self.face_names):
             self.move_image = True
-
         self.image_loaded.emit(self.move_image)  # Emit signal with the value
+
+
+    def rename_images(self):
+        item_text = os.path.basename(self.image_path)
+        src_path = os.path.join('uploaded_images', item_text)
+        dest_path = os.path.join('labelled_images', item_text)
+    
+        # Create the folder if it doesn't exist
+        labelled_folder = 'labelled_images'
+        if not os.path.exists(labelled_folder):
+            os.makedirs(labelled_folder)
+    
+        # Check if the same content image already exists
+        same_content = False
+        existing_file_path = None
+        for dest_filename in os.listdir('labelled_images'):
+            full_dest_path = os.path.join('labelled_images', dest_filename)
+            if open(src_path, 'rb').read() == open(full_dest_path, 'rb').read():
+                same_content = True
+                existing_file_path = full_dest_path
+                break
+    
+        if os.path.exists(dest_path) and not same_content:
+            base_name, extension = os.path.splitext(item_text)
+            counter = 1
+            new_dest_path = os.path.join('labelled_images', f"{base_name} ({counter}){extension}")
+            while os.path.exists(new_dest_path):
+                counter += 1
+                new_dest_path = os.path.join('labelled_images', f"{base_name} ({counter}){extension}")
+            dest_path = new_dest_path
+            self.dest_path_csv_file = dest_path
 
     def edit_name(self, index):
         csv_file = 'faces_data.csv'  # Path to your CSV file
@@ -169,7 +201,7 @@ class ImageLabel(QWidget):
             self.save_image_names()  # Save image and face names to CSV
 
     def save_image_names(self):
-        image_name = os.path.basename(self.image_path)  # Get the image file name
+        image_name = os.path.basename(self.dest_path_csv_file)  # Get the image file name
         data = {
             "image_name": image_name,
             "face_names": ", ".join(self.face_names)  # Join all face names into a single string
@@ -259,6 +291,14 @@ class ImageLabel(QWidget):
             if replace_reply == QMessageBox.StandardButton.Yes:
                 if existing_file_path:
                     os.remove(existing_file_path)  # Remove the existing image
+
+                    # Remove the existing file entry from the CSV file
+                    csv_file = "image_face_names.csv"
+                    if os.path.exists(csv_file):
+                        df = pd.read_csv(csv_file)
+                        if os.path.basename(existing_file_path) in df['image_name'].values:
+                            df = df[df['image_name'] != os.path.basename(existing_file_path)]
+                            df.to_csv(csv_file, index=False)
             else:
                 return
         
