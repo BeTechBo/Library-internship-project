@@ -1,9 +1,8 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QLabel, QFileDialog, QLineEdit
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QLabel, QLineEdit
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QPixmap, QIcon
 import os
 import pandas as pd
-import re
 import shutil
 
 class LabelledImagesWindow(QMainWindow):
@@ -48,6 +47,8 @@ class LabelledImagesWindow(QMainWindow):
             }
         """)
 
+        self.all_faces_dict = dict()
+
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.layout = QVBoxLayout()
@@ -61,7 +62,7 @@ class LabelledImagesWindow(QMainWindow):
         self.folder_list_widget = QListWidget()
         self.folder_list_widget.setIconSize(QSize(100, 100))
         self.layout.addWidget(self.folder_list_widget)
-        self.folder_list_widget.itemClicked.connect(self.load_images_from_folder)
+        self.folder_list_widget.itemClicked.connect(self.load_images_from_dict)
 
         self.image_list_widget = QListWidget()
         self.image_list_widget.setIconSize(QSize(100, 100))
@@ -88,33 +89,41 @@ class LabelledImagesWindow(QMainWindow):
         button_layout.addWidget(delete_button)
 
         organize_button = QPushButton("Organize")
-        organize_button.clicked.connect(self.organize_images)
+        organize_button.clicked.connect(lambda: self.organize_images(self.all_faces_dict, 1))
+        self.organize_images(self.all_faces_dict, 0)
+        print(self.all_faces_dict)
         button_layout.addWidget(organize_button)
 
         self.image_list_widget.itemDoubleClicked.connect(self.item_double_clicked)
 
     def load_folders(self, root_folder):
         self.folder_list_widget.clear()
-        for folder_name in os.listdir(root_folder):
-            folder_path = os.path.join(root_folder, folder_name)
-            if os.path.isdir(folder_path):
-                item = QListWidgetItem(folder_name)
-                item.setData(Qt.ItemDataRole.UserRole, folder_path)
-                self.folder_list_widget.addItem(item)
+        for folder_name in list(self.all_faces_dict.keys()):
+            item = QListWidgetItem(folder_name)
+            item.setData(Qt.ItemDataRole.UserRole, folder_name)
+            self.folder_list_widget.addItem(item)
 
-    def load_images_from_folder(self, item):
-        folder_path = item.data(Qt.ItemDataRole.UserRole)
+    def load_images_from_dict(self, item):
+        folder_path = "labelled_images"
         self.image_list_widget.clear()
+        name = self.folder_list_widget.currentItem().text()
+        looping_list = self.all_faces_dict[name]
 
-        for filename in os.listdir(folder_path):
+        for filename in looping_list:
             if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
                 item = QListWidgetItem()
-                pixmap = QPixmap(os.path.join(folder_path, filename))
-                pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                item.setIcon(QIcon(pixmap))
-
-                item.setData(Qt.ItemDataRole.UserRole, os.path.join(folder_path, filename))
-                self.image_list_widget.addItem(item)
+                image_path = os.path.join(folder_path, filename)
+                if os.path.exists(image_path):
+                    pixmap = QPixmap(image_path)
+                    if not pixmap.isNull():
+                        pixmap = pixmap.scaled(100, 100, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                        item.setIcon(QIcon(pixmap))
+                        item.setData(Qt.ItemDataRole.UserRole, image_path)
+                        self.image_list_widget.addItem(item)
+                    else:
+                        print(f"Error loading pixmap for: {image_path}")
+                else:
+                    print(f"Image not found: {image_path}")
 
     def filter_folders(self):
         search_query = self.search_bar.text().lower()
@@ -159,13 +168,13 @@ class LabelledImagesWindow(QMainWindow):
     def refresh_list(self):
         current_item = self.folder_list_widget.currentItem()
         if current_item:
-            self.load_images_from_folder(current_item)
+            self.load_images_from_dict(current_item)
 
     def go_back(self):
         self.main_window.show()
         self.hide()
 
-    def organize_images(self):
+    def organize_images(self, all_faces_dict, key):
         folder_path = 'labelled_images'
         csv_file = 'image_face_names.csv'
         if not os.path.exists(csv_file):
@@ -177,12 +186,11 @@ class LabelledImagesWindow(QMainWindow):
             image_name = row['image_name']
             face_names = row['face_names'].split(", ")
             for face in face_names:
-                person_folder = os.path.join(folder_path, face)
-                os.makedirs(person_folder, exist_ok=True)
-                src_path = os.path.join(folder_path, image_name)
-                dest_path = os.path.join(person_folder, image_name)
-                if os.path.exists(src_path) and not os.path.exists(dest_path):
-                    shutil.copy(src_path, dest_path)
+                if face in all_faces_dict:
+                    all_faces_dict[face].append(image_name)
+                else:
+                    all_faces_dict[face] = [image_name]
 
         self.load_folders(folder_path)
-        QMessageBox.information(self, "Organize", "Images have been organized by person.")
+        if key:
+            QMessageBox.information(self, "Organize", "Images have been organized by person.")
