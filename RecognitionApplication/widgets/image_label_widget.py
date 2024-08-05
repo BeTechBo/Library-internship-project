@@ -136,6 +136,11 @@ class ImageLabel(QWidget):
     def rename_images(self):
         item_text = os.path.basename(self.image_path)
         src_path = os.path.join('uploaded_images', item_text)
+
+        # Check if the item exists in the uploaded_images folder
+        if not os.path.exists(src_path):
+            return
+        
         dest_path = os.path.join('labelled_images', item_text)
     
         # Create the folder if it doesn't exist
