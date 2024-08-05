@@ -38,10 +38,10 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Fix styling
 - [x] Migrate database to spreadsheets
 - [x] Uploading photos enhancment
+- [x] Implement the search method for the labelled page
 - [ ] Create Notebook for collab and migrate code [ Omar ]
 - [ ] View Labeled Images backend [ Ebram and Andrew ]
 - [ ] Automate existing spreadsheets [ Omar ]
-- [ ] Implement the search method for the labelled page [ Ashkar ]
 - [ ] Delete multiple images
 - [ ] Testing
 - [ ] Installation Steps
