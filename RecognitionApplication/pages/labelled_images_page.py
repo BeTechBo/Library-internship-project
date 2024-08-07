@@ -152,9 +152,19 @@ class LabelledImagesWindow(QMainWindow):
                 if os.path.exists(filename):
                     os.remove(filename)
                     self.image_list_widget.takeItem(self.image_list_widget.row(current_item))
+                    self.remove_from_images_CSV(os.path.basename(filename))
                     QMessageBox.information(self, "Delete", f"{filename} has been deleted.")
                 else:
                     QMessageBox.warning(self, "Delete", f"{filename} not found.")
+
+    def remove_from_images_CSV(self, item_text):
+        # Remove the entry from the CSV file
+        csv_file = "image_face_names.csv"
+        if os.path.exists(csv_file):
+            df = pd.read_csv(csv_file)
+            if item_text in df['image_name'].values:
+                df = df[df['image_name'] != item_text]
+                df.to_csv(csv_file, index=False)
 
     def item_double_clicked(self, item):
         current_item = self.image_list_widget.currentItem()
@@ -164,7 +174,7 @@ class LabelledImagesWindow(QMainWindow):
             self.label_image = LabellingPic(filename, "")
             self.label_image.show()
             self.label_image.closeEvent = lambda event: self.refresh_list()
-    
+
     def refresh_list(self):
         current_item = self.folder_list_widget.currentItem()
         if current_item:
