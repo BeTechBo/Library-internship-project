@@ -79,9 +79,14 @@ class AllImagesWindow(QMainWindow):
                 if os.path.exists(file_path):
                     os.remove(file_path)
                     self.listWidget.takeItem(self.listWidget.row(current_item))
+                    
+                    # Remove the image entry from the CSV file
+                    self.remove_from_images_CSV(item_text)
+                    
                     QMessageBox.information(self, "Delete", f"{item_text} has been deleted.")
                 else:
                     QMessageBox.warning(self, "Delete", f"{item_text} not found.")
+
 
     def item_double_clicked(self, item):
         current_item = self.listWidget.currentItem()
