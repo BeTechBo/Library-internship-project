@@ -145,12 +145,15 @@ class AllImagesWindow(QMainWindow):
                 if existing_file_path:
                     try:
                         os.remove(existing_file_path)  # Remove the existing image
+                        if not (os.path.basename(existing_file_path) == item_text):
+                            self.remove_from_images_CSV(os.path.basename(existing_file_path))
                     except PermissionError as e:
                         print(f"Permission error: {e}")
                         QMessageBox.warning(self, "Permission Error", f"Permission denied for file: {existing_file_path}")
                         return
             else:
-                self.remove_from_images_CSV(item_text)
+                if not (os.path.basename(existing_file_path) == item_text):
+                    self.remove_from_images_CSV(item_text)
                 return
 
         if os.path.exists(dest_path) and not same_content:
