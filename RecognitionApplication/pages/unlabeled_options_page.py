@@ -3,11 +3,10 @@ from .upload_page import UploadPage
 import os
 
 class UnlabelledOptionsPage(QMainWindow):
-    def __init__(self,main_window):
+    def __init__(self):
         super().__init__()
         self.setWindowTitle("Unlabelled Options")
         self.setGeometry(100, 100, 400, 200)
-        self.main_window = main_window
         self.initUI()
 
     def initUI(self):
@@ -46,6 +45,9 @@ class UnlabelledOptionsPage(QMainWindow):
             self.all_images_window.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
+            
     def bacKK(self):
-        self.main_window.show()
+        from .starting_page import StartingPage
         self.hide()
+        self.start = StartingPage()
+        self.start.show()

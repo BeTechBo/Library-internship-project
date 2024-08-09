@@ -33,6 +33,10 @@ class UploadPage(QMainWindow):
         self.return_back.clicked.connect(self.return_home)
         self.layout.addWidget(self.return_back)
 
+        self.back = QPushButton("Back")
+        self.back.clicked.connect(self.back_prevpage)
+        self.layout.addWidget(self.back)
+
     def option_upload_single(self):
         layout = QFormLayout()
         self.upload_button_single = QPushButton("Upload Image")
@@ -129,6 +133,12 @@ class UploadPage(QMainWindow):
         self.start = StartingPage()
         self.start.show()
 
+    def back_prevpage(self):
+        self.hide()
+        from .unlabeled_options_page import UnlabelledOptionsPage
+        self.start = UnlabelledOptionsPage()
+        self.start.show()
+    
     def confirm_upload(self, file_names):
         dialog = QDialog(self)
         dialog.setWindowTitle("Confirm Upload")
