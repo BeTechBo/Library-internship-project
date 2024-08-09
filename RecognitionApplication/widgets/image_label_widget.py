@@ -107,6 +107,10 @@ class ImageLabel(QWidget):
             return []
 
     def load_names(self):
+        # If the image does not contain any faces then return
+        if len(self.face_locations) < 1:
+            return
+        
         csv_file = 'faces_data.csv'  # Path to your CSV file
         if not os.path.exists(csv_file):
             return
