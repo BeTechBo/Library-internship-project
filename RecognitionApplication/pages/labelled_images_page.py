@@ -187,6 +187,8 @@ class LabelledImagesWindow(QMainWindow):
     def organize_images(self, all_faces_dict, key):
         folder_path = 'labelled_images'
         csv_file = 'image_face_names.csv'
+        self.all_faces_dict.clear()
+        self.image_list_widget.clear()
         if not os.path.exists(csv_file):
             QMessageBox.warning(self, "Error", "CSV file not found.")
             return
