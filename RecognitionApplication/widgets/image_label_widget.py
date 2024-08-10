@@ -154,12 +154,10 @@ class ImageLabel(QWidget):
     
         # Check if the same content image already exists
         same_content = False
-        existing_file_path = None
         for dest_filename in os.listdir('labelled_images'):
             full_dest_path = os.path.join('labelled_images', dest_filename)
             if open(src_path, 'rb').read() == open(full_dest_path, 'rb').read():
                 same_content = True
-                existing_file_path = full_dest_path
                 break
     
         if os.path.exists(dest_path) and not same_content:
@@ -178,10 +176,17 @@ class ImageLabel(QWidget):
             df = pd.read_csv(csv_file)
         except (pd.errors.EmptyDataError, FileNotFoundError):
             df = pd.DataFrame(columns=['name', 'face_encoding'])
+
+        images_csv_file = 'image_face_names.csv'
+        try:
+            im_df = pd.read_csv(images_csv_file)
+        except (pd.errors.EmptyDataError, FileNotFoundError):
+            df = pd.DataFrame(columns=['image_name', 'face_names'])
     
         # Find if the face is already in our CSV
         face_encoding = self.face_encodings[index]
         all_faces_encodings = self.get_all_face_encodings(csv_file)
+        matched_name = None
         if all_faces_encodings:
             distances = face_recognition.face_distance(all_faces_encodings, face_encoding)
             best_match_index = np.argmin(distances)
@@ -195,6 +200,10 @@ class ImageLabel(QWidget):
        
         name, ok = QInputDialog.getText(self, 'Edit Name', 'Enter the name:')
         if ok and name:
+            if matched_name:
+                # Replace the old name with the new name in all entries
+                im_df['face_names'] = im_df['face_names'].apply(lambda x: ', '.join([name if each_name.strip() == matched_name else each_name.strip() for each_name in x.split(',')]))
+                im_df.to_csv(images_csv_file, index=False)
             new_entry = pd.DataFrame({
                 "name": [name],
                 "face_encoding": [face_encoding.tolist()]
