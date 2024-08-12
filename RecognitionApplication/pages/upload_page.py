@@ -29,13 +29,13 @@ class UploadPage(QMainWindow):
         self.tab_widget.addTab(self.tab_2, "Tab 2")
         self.layout.addWidget(self.tab_widget)
 
-        self.return_back = QPushButton("Return Home")
-        self.return_back.clicked.connect(self.return_home)
-        self.layout.addWidget(self.return_back)
-
         self.back = QPushButton("Back")
         self.back.clicked.connect(self.back_prevpage)
         self.layout.addWidget(self.back)
+        
+        self.return_back = QPushButton("Return Home")
+        self.return_back.clicked.connect(self.return_home)
+        self.layout.addWidget(self.return_back)
 
     def option_upload_single(self):
         layout = QFormLayout()

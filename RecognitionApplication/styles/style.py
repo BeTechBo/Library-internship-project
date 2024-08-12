@@ -5,6 +5,7 @@ class StyleSheet:
             * {
                 font-family: 'Impact', sans-serif;
                 background-color: #1e1e1e;
+                color: white; /* Makes all text white */
             }
             QPushButton {
                 color: white;
@@ -17,5 +18,8 @@ class StyleSheet:
             }
             QPushButton:hover {
                 background-color: #D9A4FF;
+            }
+            QTabBar::tab {
+                color: black; /* Sets the tab text color to black */
             }
         """
