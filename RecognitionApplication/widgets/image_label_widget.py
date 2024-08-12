@@ -124,7 +124,7 @@ class ImageLabel(QWidget):
             if all_faces_encodings:
                 distances = face_recognition.face_distance(all_faces_encodings, face_encoding)
                 best_match_index = np.argmin(distances)
-                if distances[best_match_index] <= 0.6:
+                if distances[best_match_index] <= 0.55:
                     self.face_names[i] = df.iloc[best_match_index]['name']
         print("Loaded names:", self.face_names)  # Debug print
 
@@ -181,7 +181,7 @@ class ImageLabel(QWidget):
         try:
             im_df = pd.read_csv(images_csv_file)
         except (pd.errors.EmptyDataError, FileNotFoundError):
-            df = pd.DataFrame(columns=['image_name', 'face_names'])
+            im_df = pd.DataFrame(columns=['image_name', 'face_names'])
     
         # Find if the face is already in our CSV
         face_encoding = self.face_encodings[index]
