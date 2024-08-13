@@ -39,8 +39,9 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Migrate database to spreadsheets
 - [x] Uploading photos enhancment
 - [x] Implement the search method for the labelled page
+- [x] View Labeled Images backend
+- [ ] Webscraping [ Andrew, Ebram ]
 - [ ] Create Notebook for collab and migrate code [ Omar ]
-- [ ] View Labeled Images backend [ Ebram and Andrew ]
 - [ ] Automate existing spreadsheets [ Omar ]
 - [ ] Delete multiple images
 - [ ] Testing
