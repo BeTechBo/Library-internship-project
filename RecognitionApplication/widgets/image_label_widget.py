@@ -182,7 +182,7 @@ class ImageLabel(QWidget):
             im_df = pd.read_csv(images_csv_file)
         except (pd.errors.EmptyDataError, FileNotFoundError):
             im_df = pd.DataFrame(columns=['image_name', 'face_names'])
-    
+
         # Find if the face is already in our CSV
         face_encoding = self.face_encodings[index]
         all_faces_encodings = self.get_all_face_encodings(csv_file)
@@ -195,26 +195,45 @@ class ImageLabel(QWidget):
                 reply = QMessageBox.question(self, 'Match Found', f"The name for this person is {matched_name}. Do you want to edit it?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
                 if reply == QMessageBox.StandardButton.No:
                     return
-                # Delete the row with the matched name if answer is yes
-                df = df.drop(best_match_index).reset_index(drop=True)
-       
+
+        # Ask the user for the new name
         name, ok = QInputDialog.getText(self, 'Edit Name', 'Enter the name:')
         if ok and name:
             if matched_name:
-                # Replace the old name with the new name in all entries
-                im_df['face_names'] = im_df['face_names'].apply(lambda x: ', '.join([name if each_name.strip() == matched_name else each_name.strip() for each_name in x.split(',')]))
-                im_df.to_csv(images_csv_file, index=False)
-            new_entry = pd.DataFrame({
-                "name": [name],
-                "face_encoding": [face_encoding.tolist()]
-            })
-            df = pd.concat([df, new_entry], ignore_index=True)
-            df.to_csv(csv_file, index=False)
-            self.face_names[index] = name  # Update the name for the face
-            print(f"Updated name at index {index}: {name}")  # Debug print
+                update_choice = QMessageBox.question(self, 'Update Choice', 'Do you want to update the name once or update all occurrences?',
+                                                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                                    QMessageBox.StandardButton.No)
+                if update_choice == QMessageBox.StandardButton.Yes:
+                    # Update All: Replace the old name with the new name in all entries
+                    df['name'] = df['name'].apply(lambda x: name if x == matched_name else x)
+                    im_df['face_names'] = im_df['face_names'].apply(lambda x: ', '.join([name if each_name.strip() == matched_name else each_name.strip() for each_name in x.split(',')]))
+                    df.to_csv(csv_file, index=False)
+                    im_df.to_csv(images_csv_file, index=False)
+                else:
+                    # Update Once: Add a new row with the new name and corresponding face encoding
+                    new_entry = pd.DataFrame({
+                        "name": [name],
+                        "face_encoding": [face_encoding.tolist()]
+                    })
+                    df = pd.concat([df, new_entry], ignore_index=True)
+                    df.to_csv(csv_file, index=False)
+            else:
+                # If no match was found, simply add a new row
+                new_entry = pd.DataFrame({
+                    "name": [name],
+                    "face_encoding": [face_encoding.tolist()]
+                })
+                df = pd.concat([df, new_entry], ignore_index=True)
+                df.to_csv(csv_file, index=False)
+
+            # Update the name in the current face_names list
+            self.face_names[index] = name
             self.load_names()  # Reload names from CSV after update
             self.update()  # Repaint the widget to show the updated name
             self.save_image_names()  # Save image and face names to CSV
+            print(f"Updated name at index {index}: {name}")  # Debug print
+
+
 
     def save_image_names(self):
         image_name = os.path.basename(self.dest_path_csv_file)  # Get the image file name
