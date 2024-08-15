@@ -41,25 +41,29 @@ class ImageLabel(QWidget):
         super().resizeEvent(event)
         self.update_image()
 
+    def calculate_font_size(self, face_height):
+        """Calculate font size based on face height with a maximum size limit."""
+        max_font_size = 14  # Maximum font size
+        min_font_size = 8   # Minimum font size
+        calculated_size = face_height // 3  # Arbitrary scale factor
+        return min(max(calculated_size, min_font_size), max_font_size)
+
+    
     def paintEvent(self, event):
         # Create a COPY for drawing
-        image_copy = self.original_image.copy() 
-
-        scaled_image = image_copy.scaled(self.labelPic.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation) 
-
+        image_copy = self.original_image.copy()
+    
+        scaled_image = image_copy.scaled(self.labelPic.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+    
         # Draw the scaled image
         image_for_drawing = scaled_image.toImage()
         painter = QPainter(image_for_drawing)
-
-        # Draw rectangles and names
-        painter.setPen(QPen(Qt.GlobalColor.green, 2))
-        painter.setFont(QFont('Arial', 14))
-
+    
         # Get the scale factors
         scaled_image_size = scaled_image.size()
         width_scale = scaled_image_size.width() / self.original_image.width()
         height_scale = scaled_image_size.height() / self.original_image.height()
-
+    
         self.scaled_face_locations = []
         for index, (top, right, bottom, left) in enumerate(self.face_locations):
             # Scale face locations to fit the scaled image
@@ -67,25 +71,40 @@ class ImageLabel(QWidget):
             scaled_right = int(right * width_scale)
             scaled_bottom = int(bottom * height_scale)
             scaled_left = int(left * width_scale)
-
+    
             self.scaled_face_locations.append(QRect(scaled_left, scaled_top, scaled_right - scaled_left, scaled_bottom - scaled_top))
-
+    
+            # Calculate the face height
+            face_height = scaled_bottom - scaled_top
+    
+            # Determine the font size based on the face height
+            font_size = self.calculate_font_size(face_height)
+    
+            # Set the font size
+            painter.setPen(QPen(Qt.GlobalColor.green, 2))
+            painter.setFont(QFont('Arial', font_size))
+    
+            # Extract the first name
+            first_name = self.face_names[index].split()[0]
+    
             # White Background Behind Text
-            text_rect = painter.boundingRect(self.scaled_face_locations[-1], Qt.AlignmentFlag.AlignLeft, self.face_names[self.scaled_face_locations.index(self.scaled_face_locations[-1])])
+            text_rect = painter.boundingRect(self.scaled_face_locations[-1], Qt.AlignmentFlag.AlignLeft, first_name)
             text_rect.setHeight(text_rect.height() + 7)
-            text_rect.moveTop(text_rect.top() - text_rect.height() - 5) # 5 is a padding value
-
+            text_rect.moveTop(text_rect.top() - text_rect.height() - 5)  # 5 is a padding value
+    
             painter.drawRect(self.scaled_face_locations[-1])
-
+    
             painter.fillRect(text_rect, QBrush(Qt.GlobalColor.white))
-
-            painter.drawText(self.scaled_face_locations[-1].left(), self.scaled_face_locations[-1].top() - 10, self.face_names[index])  # Correctly use index
-
+    
+            painter.drawText(self.scaled_face_locations[-1].left(), self.scaled_face_locations[-1].top() - 10, first_name)  # Draw only the first name
+    
         painter.end()
-        
+    
         # Set the scaled image on the label
         self.labelPic.setPixmap(QPixmap.fromImage(image_for_drawing))
         self.labelPic.resize(self.labelPic.pixmap().size())
+
+
 
     def mousePressEvent(self, event):
         click_x = int(event.position().x()) 
