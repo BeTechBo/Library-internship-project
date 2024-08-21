@@ -211,75 +211,68 @@ class ImageLabel(QWidget):
             best_match_index = np.argmin(distances)
             if distances[best_match_index] <= 0.55:
                 matched_name = df.iloc[best_match_index]['name']
-                reply = QMessageBox.question(self, 'Match Found', f"The name for this person is {matched_name}. Do you want to edit it?", QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+                reply = QMessageBox.question(self, 'Match Found', f"The name for this person is {matched_name}. Do you want to edit it?", 
+                                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
                 if reply == QMessageBox.StandardButton.No:
                     return
 
-        # Ask the user for the new name
-        name, ok = QInputDialog.getText(self, 'Edit Name', 'Enter the name:')
-        if ok and name:
-            if matched_name:
-                update_choice = QMessageBox.question(self, 'Update Choice', 'Do you want to update the name once or update all occurrences?',
-                                                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                                                    QMessageBox.StandardButton.No)
-                if update_choice == QMessageBox.StandardButton.Yes:
-                    # Update All: Replace the old name with the new name in all entries
-                    df['name'] = df['name'].apply(lambda x: name if x == matched_name else x)
-                    im_df['face_names'] = im_df['face_names'].apply(lambda x: ', '.join([name if each_name.strip() == matched_name else each_name.strip() for each_name in x.split(',')]))
-                    df.to_csv(csv_file, index=False)
-                    im_df.to_csv(images_csv_file, index=False)
-                else:
-                    # Update Once: Add a new row with the new name and corresponding face encoding
-                    new_entry = pd.DataFrame({
-                        "name": [name],
-                        "face_encoding": [face_encoding.tolist()]
-                    })
-                    df = pd.concat([df, new_entry], ignore_index=True)
-                    df.to_csv(csv_file, index=False)
+        # Ask the user for the name
+        name, ok_pressed = QInputDialog.getText(self, "Edit Name", "Enter the new name:", text=self.face_names[index])
+        if not ok_pressed or not name:
+            return
+
+        if matched_name:
+            # Ask user if they want to update all or only this instance
+            update_choice = QMessageBox(self)
+            update_choice.setWindowTitle('Update Name')
+            update_choice.setText('Do you want to update this name for all occurrences or only this one?')
+            update_all_button = update_choice.addButton("Update All", QMessageBox.ButtonRole.YesRole)
+            update_once_button = update_choice.addButton("Update Once", QMessageBox.ButtonRole.NoRole)
+            update_choice.exec()
+
+            if update_choice.clickedButton() == update_all_button:
+                # Update All: Replace the old name with the new name in all entries
+                df['name'] = df['name'].apply(lambda x: name if x == matched_name else x)
+                im_df['face_names'] = im_df['face_names'].apply(lambda x: ', '.join([name if each_name.strip() == matched_name else each_name.strip() for each_name in x.split(',')]))
+                df.to_csv(csv_file, index=False)
+                im_df.to_csv(images_csv_file, index=False)
             else:
-                # If no match was found, simply add a new row
+                # Update Once: Add a new row with the new name and corresponding face encoding
                 new_entry = pd.DataFrame({
                     "name": [name],
                     "face_encoding": [face_encoding.tolist()]
                 })
                 df = pd.concat([df, new_entry], ignore_index=True)
                 df.to_csv(csv_file, index=False)
+        else:
+            # If no match was found, simply add a new row
+            new_entry = pd.DataFrame({
+                "name": [name],
+                "face_encoding": [face_encoding.tolist()]
+            })
+            df = pd.concat([df, new_entry], ignore_index=True)
+            df.to_csv(csv_file, index=False)
 
-            # Update the name in the current face_names list
-            self.face_names[index] = name
-            self.load_names()  # Reload names from CSV after update
-            self.update()  # Repaint the widget to show the updated name
-            self.save_image_names()  # Save image and face names to CSV
-            print(f"Updated name at index {index}: {name}")  # Debug print
-
-
+        # Update the name in the current face_names list
+        self.face_names[index] = name
+        self.load_names()  # Reload names from CSV after update
+        self.update()  # Repaint the widget to show the updated name
+        self.save_image_names()  # Save image and face names to CSV
+        print(f"Updated name at index {index}: {name}")  # Debug print
 
     def save_image_names(self):
-        image_name = os.path.basename(self.dest_path_csv_file)  # Get the image file name
-        data = {
-            "image_name": image_name,
-            "face_names": ", ".join(self.face_names)  # Join all face names into a single string
-        }
-
-        csv_file = "image_face_names.csv"
-        
-        # Check if the file exists
-        if os.path.exists(csv_file):
-            # Read the existing data
+        csv_file = 'image_face_names.csv'
+        try:
             df = pd.read_csv(csv_file)
+        except (pd.errors.EmptyDataError, FileNotFoundError):
+            df = pd.DataFrame(columns=['image_name', 'face_names'])
 
-            # Check if the image name already exists
-            if image_name in df['image_name'].values:
-                # Update the existing row
-                df.loc[df['image_name'] == image_name, 'face_names'] = data['face_names']
-            else:
-                # Append a new row
-                df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
-        else:
-            # Create a new DataFrame if the file does not exist
-            df = pd.DataFrame([data])
-
-        # Write the DataFrame to the CSV file
-        df.to_csv(csv_file, index=False)
+        # Remove any existing entry with the same image_name
+        df = df[df['image_name'] != self.dest_path_csv_file]
         
-        print(f"Saved image names for {image_name}")  # Debug print
+        new_entry = pd.DataFrame({
+            "image_name": [self.dest_path_csv_file],
+            "face_names": [", ".join(self.face_names)]
+        })
+        df = pd.concat([df, new_entry], ignore_index=True)
+        df.to_csv(csv_file, index=False)
