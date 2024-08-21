@@ -48,7 +48,7 @@ class ImageLabel(QWidget):
         calculated_size = face_height // 3  # Arbitrary scale factor
         return min(max(calculated_size, min_font_size), max_font_size)
 
-    
+        
     def paintEvent(self, event):
         # Create a COPY for drawing
         image_copy = self.original_image.copy()
@@ -87,6 +87,10 @@ class ImageLabel(QWidget):
             # Extract the first name
             first_name = self.face_names[index].split()[0]
     
+            # Skip drawing the box and name if the face name is "NA"
+            if first_name == "NONE":
+                continue
+    
             # White Background Behind Text
             text_rect = painter.boundingRect(self.scaled_face_locations[-1], Qt.AlignmentFlag.AlignLeft, first_name)
             text_rect.setHeight(text_rect.height() + 7)
@@ -103,6 +107,7 @@ class ImageLabel(QWidget):
         # Set the scaled image on the label
         self.labelPic.setPixmap(QPixmap.fromImage(image_for_drawing))
         self.labelPic.resize(self.labelPic.pixmap().size())
+
 
 
 
@@ -261,18 +266,31 @@ class ImageLabel(QWidget):
         print(f"Updated name at index {index}: {name}")  # Debug print
 
     def save_image_names(self):
-        csv_file = 'image_face_names.csv'
-        try:
-            df = pd.read_csv(csv_file)
-        except (pd.errors.EmptyDataError, FileNotFoundError):
-            df = pd.DataFrame(columns=['image_name', 'face_names'])
+        image_name = os.path.basename(self.dest_path_csv_file)  # Get the image file name
+        data = {
+            "image_name": image_name,
+            "face_names": ", ".join(self.face_names)  # Join all face names into a single string
+        }
 
-        # Remove any existing entry with the same image_name
-        df = df[df['image_name'] != self.dest_path_csv_file]
+        csv_file = "image_face_names.csv"
         
-        new_entry = pd.DataFrame({
-            "image_name": [self.dest_path_csv_file],
-            "face_names": [", ".join(self.face_names)]
-        })
-        df = pd.concat([df, new_entry], ignore_index=True)
+        # Check if the file exists
+        if os.path.exists(csv_file):
+            # Read the existing data
+            df = pd.read_csv(csv_file)
+
+            # Check if the image name already exists
+            if image_name in df['image_name'].values:
+                # Update the existing row
+                df.loc[df['image_name'] == image_name, 'face_names'] = data['face_names']
+            else:
+                # Append a new row
+                df = pd.concat([df, pd.DataFrame([data])], ignore_index=True)
+        else:
+            # Create a new DataFrame if the file does not exist
+            df = pd.DataFrame([data])
+
+        # Write the DataFrame to the CSV file
         df.to_csv(csv_file, index=False)
+        
+        print(f"Saved image names for {image_name}")  # Debug print
