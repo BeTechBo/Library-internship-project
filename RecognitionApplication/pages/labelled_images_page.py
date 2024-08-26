@@ -55,7 +55,7 @@ class LabelledImagesWindow(QMainWindow):
         self.central_widget.setLayout(self.layout)
 
         self.search_bar = QLineEdit()
-        self.search_bar.setPlaceholderText("Search folders...")
+        self.search_bar.setPlaceholderText("Search names...")
         self.search_bar.textChanged.connect(self.filter_folders)
         self.layout.addWidget(self.search_bar)
 
@@ -79,10 +79,6 @@ class LabelledImagesWindow(QMainWindow):
         back_button = QPushButton("Back")
         back_button.clicked.connect(self.go_back)
         button_layout.addWidget(back_button)
-
-        show_button = QPushButton("Show")
-        show_button.clicked.connect(self.show_item)
-        button_layout.addWidget(show_button)
 
         delete_button = QPushButton("Delete")
         delete_button.clicked.connect(self.delete_item)
@@ -131,14 +127,6 @@ class LabelledImagesWindow(QMainWindow):
             item = self.folder_list_widget.item(index)
             folder_name = item.text().lower()
             item.setHidden(search_query not in folder_name)
-
-    def show_item(self):
-        current_item = self.image_list_widget.currentItem()
-        if current_item:
-            filename = current_item.data(Qt.ItemDataRole.UserRole)
-            pixmap = QPixmap(filename)
-            self.image_display_label.setPixmap(pixmap.scaled(self.image_display_label.size(), Qt.AspectRatioMode.KeepAspectRatio))
-            QMessageBox.information(self, "Selected Item", f"Selected item: {filename}")
 
     def delete_item(self):
         current_item = self.image_list_widget.currentItem()

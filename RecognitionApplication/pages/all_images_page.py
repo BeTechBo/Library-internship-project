@@ -30,10 +30,6 @@ class AllImagesWindow(QMainWindow):
         back_button.setStyleSheet("QPushButton { margin: 10px; }")
         self.layout.addWidget(back_button)
 
-        show_button = QPushButton("Show")
-        show_button.clicked.connect(self.show_item)
-        self.layout.addWidget(show_button)
-
         delete_button = QPushButton("Delete")
         delete_button.clicked.connect(self.delete_item)
         self.layout.addWidget(delete_button)
@@ -55,14 +51,7 @@ class AllImagesWindow(QMainWindow):
                 item.setIcon(QIcon(pixmap))
                 item.setText(filename)
                 self.listWidget.addItem(item)
-
-    def show_item(self):
-        current_item = self.listWidget.currentItem()
-        if current_item:
-            item_text = current_item.text()
-            print(f"Selected item text: {item_text}")
-            # Optionally, show a message box with the selected item's text
-            QMessageBox.information(self, "Selected Item", f"Selected item: {item_text}")
+                
 
     def delete_item(self):
         current_item = self.listWidget.currentItem()

@@ -79,16 +79,23 @@ class UploadPage(QMainWindow):
             file_names, _ = QFileDialog.getOpenFileNames(self, "Select Images", "", 
                                                          "Image Files (*.png *.jpg *.jpeg *.bmp);;All Files (*)")
             if file_names:
-                new_files = [file_name for file_name in file_names if not self.image_exists(file_name)]
+                # Identify and separate duplicate files
+                duplicate_files = [file_name for file_name in file_names if self.image_exists(file_name)]
+                new_files = [file_name for file_name in file_names if file_name not in duplicate_files]
+                
+                # Confirm upload of new files
                 selected_files = self.confirm_upload(new_files)
                 if selected_files:
                     for file_name in selected_files:
                         self.save_image(file_name)
                     QMessageBox.information(self, "Images Uploaded", f"Uploaded {len(selected_files)} images.")
-                    if len(selected_files) < len(new_files):
-                        QMessageBox.warning(self, "Duplicate Images", f"{len(new_files) - len(selected_files)} images were duplicates and were not uploaded.")
+                
+                # Show warning only if there were duplicates found initially
+                if duplicate_files:
+                    QMessageBox.warning(self, "Duplicate Images", f"{len(duplicate_files)} images were duplicates and were not uploaded.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"An error occurred: {e}")
+
 
     def save_image(self, file_name):
         try:
