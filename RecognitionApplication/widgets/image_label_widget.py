@@ -71,7 +71,14 @@ class ImageLabel(QWidget):
             scaled_right = int(right * width_scale)
             scaled_bottom = int(bottom * height_scale)
             scaled_left = int(left * width_scale)
+
+            # Extract the first name
+            first_name = self.face_names[index].split()[0]
     
+            # Skip drawing the box and name if the face name is "NA"
+            if first_name == "NONE":
+                continue
+                
             self.scaled_face_locations.append(QRect(scaled_left, scaled_top, scaled_right - scaled_left, scaled_bottom - scaled_top))
     
             # Calculate the face height
@@ -83,13 +90,6 @@ class ImageLabel(QWidget):
             # Set the font size
             painter.setPen(QPen(Qt.GlobalColor.green, 2))
             painter.setFont(QFont('Arial', font_size))
-    
-            # Extract the first name
-            first_name = self.face_names[index].split()[0]
-    
-            # Skip drawing the box and name if the face name is "NA"
-            if first_name == "NONE":
-                continue
     
             # White Background Behind Text
             text_rect = painter.boundingRect(self.scaled_face_locations[-1], Qt.AlignmentFlag.AlignLeft, first_name)
@@ -107,10 +107,7 @@ class ImageLabel(QWidget):
         # Set the scaled image on the label
         self.labelPic.setPixmap(QPixmap.fromImage(image_for_drawing))
         self.labelPic.resize(self.labelPic.pixmap().size())
-
-
-
-
+        
     def mousePressEvent(self, event):
         click_x = int(event.position().x()) 
         click_y = int(event.position().y())
@@ -148,8 +145,22 @@ class ImageLabel(QWidget):
             if all_faces_encodings:
                 distances = face_recognition.face_distance(all_faces_encodings, face_encoding)
                 best_match_index = np.argmin(distances)
+                
+                # Check if the closest match is within the threshold
                 if distances[best_match_index] <= 0.55:
-                    self.face_names[i] = df.iloc[best_match_index]['name']
+                    matched_name = df.iloc[best_match_index]['name']
+    
+                    # If the matched name is "NONE", ensure a 100% match for the encoding
+                    if matched_name == "NONE":
+                        matched_encoding = all_faces_encodings[best_match_index]
+    
+                        # Check for a perfect match (100%) between the current encoding and matched encoding
+                        if np.array_equal(face_encoding, matched_encoding):
+                            self.face_names[i] = "NONE"
+                    else:
+                        # If it's not "NONE", proceed with assigning the name
+                        self.face_names[i] = matched_name
+        
         print("Loaded names:", self.face_names)  # Debug print
 
         self.rename_images()
@@ -216,16 +227,19 @@ class ImageLabel(QWidget):
             best_match_index = np.argmin(distances)
             if distances[best_match_index] <= 0.55:
                 matched_name = df.iloc[best_match_index]['name']
-                reply = QMessageBox.question(self, 'Match Found', f"The name for this person is {matched_name}. Do you want to edit it?", 
-                                             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
-                if reply == QMessageBox.StandardButton.No:
-                    return
+                if matched_name == "NONE":
+                    matched_name = None
+                else:
+                    reply = QMessageBox.question(self, 'Match Found', f"The name for this person is {matched_name}. Do you want to edit it?", 
+                                                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No, QMessageBox.StandardButton.No)
+                    if reply == QMessageBox.StandardButton.No:
+                        return
 
         # Ask the user for the name
         name, ok_pressed = QInputDialog.getText(self, "Edit Name", "Enter the new name:", text=self.face_names[index])
         if not ok_pressed or not name:
             return
-
+            
         if matched_name:
             # Ask user if they want to update all or only this instance
             update_choice = QMessageBox(self)
