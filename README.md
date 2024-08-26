@@ -40,9 +40,9 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] Uploading photos enhancment
 - [x] Implement the search method for the labelled page
 - [x] View Labeled Images backend
-- [ ] Webscraping the yearbook [ Andrew, Ebram ]
+- [x] Webscraping the yearbook
+- [x] check group photos, Recognize wrong faces and add logic for changing all names of a certain perosn or just one name
 - [ ] Documentation [ Ebram ]
-- [ ] check group photos, Recognize wrong faces and add logic for changing all names of a certain perosn or just one name [ Ashkar ]
 - [ ] Create Notebook for collab and migrate code [ Omar ]
 - [ ] Automate existing spreadsheets [ Omar ]
 - [ ] Delete multiple images
