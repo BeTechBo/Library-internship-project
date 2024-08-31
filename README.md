@@ -4,7 +4,7 @@
 
 This repository contains the implementation of an image face tagging tool. The tool allows users to tag individual faces in a set of images and manage these tags effectively.
 
-## Upcoming Features
+## Features
 
 1. **Graphical User Interface (GUI)**: A user-friendly interface for tagging faces in images.
 2. **Metadata Storage**: Save identifications in separate metadata files for each image.
@@ -42,10 +42,10 @@ This repository contains the implementation of an image face tagging tool. The t
 - [x] View Labeled Images backend
 - [x] Webscraping the yearbook
 - [x] check group photos, Recognize wrong faces and add logic for changing all names of a certain perosn or just one name
-- [ ] Documentation [ Ebram ]
-- [ ] Create Notebook for collab and migrate code [ Omar ]
-- [ ] Automate existing spreadsheets [ Omar ]
-- [ ] Delete multiple images
-- [ ] Testing
-- [ ] Installation Steps
+- [x] Documentation
+- [x] Create Notebook for collab and migrate code
+- [x] Automate existing spreadsheets
+- [x] Delete multiple images
+- [x] Testing
+- [x] Installation Steps
 
